@@ -1,0 +1,162 @@
+# 配置文件示例
+# 复制此文件为 config.yaml 并修改相关配置
+
+# 数据源配置
+data_sources:
+  tushare:
+    token: "your_tushare_token_here"
+    timeout: 30
+    retry_times: 3
+
+  yfinance:
+    timeout: 30
+    retry_times: 3
+
+  akshare:
+    timeout: 30
+    retry_times: 3
+
+# 市场配置
+markets:
+  A股:
+    exchanges: ["SSE", "SZSE"] # 上交所、深交所
+    indices: ["000001.SH", "399001.SZ", "399006.SZ"] # 上证、深证、创业板
+
+  美股:
+    exchanges: ["NASDAQ", "NYSE", "AMEX"]
+    indices: ["^GSPC", "^IXIC", "^DJI"] # 标普500、纳斯达克、道琼斯
+
+  港股:
+    exchanges: ["HKEX"]
+    indices: ["^HSI", "^HSCE"] # 恒生指数、恒生中国企业指数
+
+# 策略配置
+strategies:
+  schloss:
+    # 施洛斯价值投资策略参数
+    pe_max: 15.0 # 最大市盈率
+    pb_max: 2.0 # 最大市净率
+    debt_ratio_max: 0.4 # 最大负债率
+    roe_min: 0.10 # 最小净资产收益率
+    revenue_growth_min: 0.05 # 最小营收增长率
+    dividend_years: 3 # 连续分红年数
+    market_cap_min: 1000000000 # 最小市值（10亿）
+
+  custom:
+    # 自定义策略表达式示例
+    formula: "PE < 20 AND PB < 3 AND ROE > 0.08 AND DEBT_RATIO < 0.5"
+
+# 评分权重配置
+scoring:
+  weights:
+    basic_score: 0.4 # 基础财务评分权重
+    ai_score: 0.4 # AI分析评分权重
+    risk_score: 0.2 # 风险评分权重
+
+  basic_scoring:
+    # 基础评分指标权重
+    profitability: 0.3 # 盈利能力
+    growth: 0.25 # 成长性
+    valuation: 0.25 # 估值
+    financial_health: 0.2 # 财务健康度
+
+  risk_metrics:
+    # 风险指标配置
+    volatility_window: 252 # 波动率计算窗口（天）
+    var_confidence: 0.05 # VaR置信水平
+    max_drawdown_window: 252 # 最大回撤计算窗口
+
+# AI评分配置
+ai_scoring:
+  openai:
+    api_key: "your_openai_api_key"
+    model: "gpt-4"
+    max_tokens: 1000
+    temperature: 0.1
+
+  # AI评分提示模板
+  prompt_template: |
+    请分析以下股票的投资价值，给出0-100分的评分和详细理由：
+
+    公司名称：{company_name}
+    股票代码：{symbol}
+    财务数据：{financial_data}
+
+    请从以下几个维度进行分析：
+    1. 盈利能力和增长潜力
+    2. 财务健康状况
+    3. 估值水平
+    4. 行业地位和竞争优势
+    5. 风险因素
+
+    输出格式为JSON：
+    {{
+      "score": 评分(0-100),
+      "recommendation": "买入/持有/卖出",
+      "reasoning": "详细分析理由",
+      "strengths": ["优势1", "优势2"],
+      "risks": ["风险1", "风险2"],
+      "tags": ["价值股", "成长股", "蓝筹股"]
+    }}
+
+# 缓存配置
+cache:
+  type: "sqlite" # sqlite, redis, memory
+  sqlite:
+    path: "data/cache.db"
+    expire_days: 7
+  redis:
+    host: "localhost"
+    port: 6379
+    db: 0
+    expire_seconds: 604800 # 7天
+
+# 输出配置
+output:
+  default_format: "json" # json, csv, excel
+  max_results: 100 # 最大返回结果数
+  sort_by: "total_score" # 默认排序字段
+  sort_order: "desc" # 排序方向 asc/desc
+
+# 回测配置
+backtest:
+  start_date: "2020-01-01"
+  end_date: "2023-12-31"
+  benchmark: "000300.SH" # 沪深300作为基准
+  initial_capital: 1000000 # 初始资金100万
+  commission: 0.0003 # 手续费率
+  rebalance_frequency: "monthly" # 调仓频率
+
+# 定时任务配置
+scheduler:
+  enabled: true
+  timezone: "Asia/Shanghai"
+  jobs:
+    daily_update:
+      cron: "0 18 * * 1-5" # 工作日18:00更新数据
+      function: "update_market_data"
+
+    weekly_screening:
+      cron: "0 10 * * 6" # 周六10:00进行选股
+      function: "run_screening"
+
+# 日志配置
+logging:
+  level: "INFO"
+  format: "{time:YYYY-MM-DD HH:mm:ss} | {level} | {name}:{function}:{line} | {message}"
+  file_path: "logs/app.log"
+  rotation: "1 week"
+  retention: "1 month"
+
+# Web应用配置
+webapp:
+  host: "0.0.0.0"
+  port: 8000
+  debug: false
+  cors_origins: ["http://localhost:3000", "http://127.0.0.1:3000"]
+
+# 性能配置
+performance:
+  max_concurrent_requests: 10 # 最大并发请求数
+  request_timeout: 30 # 请求超时时间（秒）
+  batch_size: 100 # 批处理大小

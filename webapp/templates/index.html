@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>财务智能体 - 智能选股系统</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/datatables@1.10.18/media/css/jquery.dataTables.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.plot.ly/plotly-latest.min.js"
+      rel="preload"
+      as="script"
+    />
+    <link href="/static/css/main.css?v=2" rel="stylesheet" />
+  </head>
+  <body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+          <i class="fas fa-chart-line me-2"></i>
+          财务智能体
+        </a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <a class="nav-link active" href="#" data-tab="dashboard">
+                <i class="fas fa-tachometer-alt me-1"></i>仪表板
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" data-tab="stocks">
+                <i class="fas fa-search me-1"></i>股票数据
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" data-tab="strategies">
+                <i class="fas fa-brain me-1"></i>策略管理
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" data-tab="backtest">
+                <i class="fas fa-history me-1"></i>回测分析
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" data-tab="config">
+                <i class="fas fa-cog me-1"></i>系统配置
+              </a>
+            </li>
+          </ul>
+          <span class="navbar-text">
+            <i class="fas fa-circle text-success me-1"></i>
+            <span id="system-status">系统运行正常</span>
+          </span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- 主内容区域 -->
+    <div class="container-fluid mt-3">
+      <!-- 仪表板页面 -->
+      <div id="dashboard-tab" class="tab-content active">
+        <div class="row">
+          <!-- 系统概览卡片 -->
+          <div class="col-md-3 mb-3">
+            <div class="card stat-card bg-primary text-white">
+              <div class="card-body">
+                <div class="d-flex justify-content-between">
+                  <div>
+                    <h6 class="card-title">注册策略</h6>
+                    <h3 id="strategy-count">0</h3>
+                  </div>
+                  <i class="fas fa-brain fa-2x opacity-75"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 mb-3">
+            <div class="card stat-card bg-success text-white">
+              <div class="card-body">
+                <div class="d-flex justify-content-between">
+                  <div>
+                    <h6 class="card-title">股票数据</h6>
+                    <h3 id="stock-count">0</h3>
+                  </div>
+                  <i class="fas fa-chart-bar fa-2x opacity-75"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 mb-3">
+            <div class="card stat-card bg-warning text-white">
+              <div class="card-body">
+                <div class="d-flex justify-content-between">
+                  <div>
+                    <h6 class="card-title">回测任务</h6>
+                    <h3 id="backtest-count">0</h3>
+                  </div>
+                  <i class="fas fa-history fa-2x opacity-75"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 mb-3">
+            <div class="card stat-card bg-info text-white">
+              <div class="card-body">
+                <div class="d-flex justify-content-between">
+                  <div>
+                    <h6 class="card-title">系统状态</h6>
+                    <h6 id="system-uptime">运行中</h6>
+                  </div>
+                  <i class="fas fa-server fa-2x opacity-75"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 快速操作 -->
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <div class="card">
+              <div class="card-header">
+                <h5><i class="fas fa-rocket me-2"></i>快速操作</h5>
+              </div>
+              <div class="card-body">
+                <div class="d-grid gap-2">
+                  <button
+                    class="btn btn-primary"
+                    onclick="quickAction('fetch-data')"
+                  >
+                    <i class="fas fa-download me-2"></i>获取最新股票数据
+                  </button>
+                  <button
+                    class="btn btn-success"
+                    onclick="quickAction('run-strategy')"
+                  >
+                    <i class="fas fa-play me-2"></i>执行默认策略
+                  </button>
+                  <button
+                    class="btn btn-warning"
+                    onclick="quickAction('run-backtest')"
+                  >
+                    <i class="fas fa-chart-line me-2"></i>运行快速回测
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <div class="card">
+              <div class="card-header">
+                <h5><i class="fas fa-bell me-2"></i>系统通知</h5>
+              </div>
+              <div class="card-body">
+                <div id="notifications">
+                  <div class="alert alert-info alert-sm">
+                    <i class="fas fa-info-circle me-2"></i>
+                    系统已启动，所有服务运行正常
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 图表展示 -->
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <div class="card">
+              <div class="card-header">
+                <h5><i class="fas fa-chart-pie me-2"></i>策略分布</h5>
+              </div>
+              <div class="card-body">
+                <div id="strategy-chart" style="height: 300px"></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <div class="card">
+              <div class="card-header">
+                <h5><i class="fas fa-line-chart me-2"></i>收益曲线</h5>
+              </div>
+              <div class="card-body">
+                <div id="returns-chart" style="height: 300px"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 股票数据页面 -->
+      <div id="stocks-tab" class="tab-content">
+        <div class="card">
+          <div class="card-header">
+            <div class="row">
+              <div class="col-md-6">
+                <h5><i class="fas fa-search me-2"></i>股票数据查询</h5>
+              </div>
+              <div class="col-md-6 text-end">
+                <button
+                  class="btn btn-primary btn-sm"
+                  onclick="refreshStockData()"
+                >
+                  <i class="fas fa-refresh me-1"></i>刷新数据
+                </button>
+                <button
+                  class="btn btn-success btn-sm"
+                  onclick="exportStockData()"
+                >
+                  <i class="fas fa-download me-1"></i>导出数据
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <!-- 查询条件 -->
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label class="form-label">市场选择</label>
+                <select class="form-select" id="market-select">
+                  <option value="a_stock">A股市场</option>
+                  <option value="us_stock">美股市场</option>
+                  <option value="hk_stock">港股市场</option>
+                  <option value="all">所有市场</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">股票代码</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="symbols-input"
+                  placeholder="输入股票代码，逗号分隔（留空获取所有股票）"
+                />
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <button
+                  class="btn btn-primary d-block w-100"
+                  onclick="searchStocks()"
+                >
+                  <i class="fas fa-search me-1"></i>查询
+                </button>
+              </div>
+            </div>
+
+            <!-- 数据表格 -->
+            <div class="table-responsive">
+              <table id="stocks-table" class="table table-striped table-hover">
+                <thead class="table-dark">
+                </thead>
+                <tbody>
+                  <!-- 数据将通过JavaScript加载 -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 策略管理页面 -->
+      <div id="strategies-tab" class="tab-content">
+        <div class="row">
+          <div class="col-md-8">
+            <div class="card">
+              <div class="card-header">
+                <h5><i class="fas fa-brain me-2"></i>策略列表</h5>
+              </div>
+              <div class="card-body">
+                <div id="strategies-list">
+                  <!-- 策略列表将通过JavaScript加载 -->
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-header">
+                <h5><i class="fas fa-plus me-2"></i>创建新策略</h5>
+              </div>
+              <div class="card-body">
+                <form id="strategy-form">
+                  <div class="mb-3">
+                    <label class="form-label">策略名称</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="strategy-name"
+                      required
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">策略描述</label>
+                    <textarea
+                      class="form-control"
+                      id="strategy-description"
+                      rows="3"
+                    ></textarea>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">过滤条件</label>
+                    <textarea
+                      class="form-control"
+                      id="strategy-filters"
+                      rows="4"
+                      placeholder="例如: pe > 0 and pe < 25"
+                    ></textarea>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">评分公式</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="strategy-score"
+                      placeholder="例如: 1/pe + roe"
+                    />
+                  </div>
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i>保存策略
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <div class="card mt-3">
+              <div class="card-header">
+                <h5><i class="fas fa-play me-2"></i>执行策略</h5>
+              </div>
+              <div class="card-body">
+                <form id="execute-strategy-form">
+                  <div class="mb-3">
+                    <label class="form-label">选择策略</label>
+                    <select class="form-select" id="execute-strategy-select">
+                      <option value="">请选择策略</option>
+                    </select>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">返回数量</label>
+                    <input
+                      type="number"
+                      class="form-control"
+                      id="execute-top-n"
+                      value="20"
+                      min="1"
+                      max="100"
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <div class="form-check">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        id="include-scores"
+                      />
+                      <label class="form-check-label">包含评分详情</label>
+                    </div>
+                  </div>
+                  <button type="submit" class="btn btn-success">
+                    <i class="fas fa-play me-1"></i>执行策略
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 策略执行结果 -->
+        <div class="row mt-3">
+          <div class="col-12">
+            <div class="card" id="strategy-results-card" style="display: none">
+              <div class="card-header">
+                <h5><i class="fas fa-chart-bar me-2"></i>策略执行结果</h5>
+              </div>
+              <div class="card-body">
+                <div id="strategy-results"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 回测分析页面 -->
+      <div id="backtest-tab" class="tab-content">
+        <div class="row">
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-header">
+                <h5><i class="fas fa-history me-2"></i>回测配置</h5>
+              </div>
+              <div class="card-body">
+                <form id="backtest-form">
+                  <div class="mb-3">
+                    <label class="form-label">策略选择</label>
+                    <select class="form-select" id="backtest-strategy" required>
+                      <option value="">请选择策略</option>
+                    </select>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">开始日期</label>
+                    <input
+                      type="date"
+                      class="form-control"
+                      id="backtest-start-date"
+                      required
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">结束日期</label>
+                    <input
+                      type="date"
+                      class="form-control"
+                      id="backtest-end-date"
+                      required
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">初始资金</label>
+                    <input
+                      type="number"
+                      class="form-control"
+                      id="backtest-capital"
+                      value="1000000"
+                      min="10000"
+                      step="10000"
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">手续费率 (%)</label>
+                    <input
+                      type="number"
+                      class="form-control"
+                      id="backtest-commission"
+                      value="0.08"
+                      min="0"
+                      max="1"
+                      step="0.01"
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">调仓频率</label>
+                    <select class="form-select" id="backtest-rebalance">
+                      <option value="daily">每日</option>
+                      <option value="weekly">每周</option>
+                      <option value="monthly" selected>每月</option>
+                      <option value="quarterly">每季度</option>
+                    </select>
+                  </div>
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-play me-1"></i>开始回测
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-8">
+            <div class="card">
+              <div class="card-header">
+                <h5><i class="fas fa-chart-line me-2"></i>回测结果</h5>
+              </div>
+              <div class="card-body">
+                <div id="backtest-progress" style="display: none">
+                  <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">回测进行中...</span>
+                    </div>
+                    <p class="mt-2">回测进行中，请稍候...</p>
+                  </div>
+                </div>
+                <div id="backtest-results" style="display: none">
+                  <!-- 回测结果将在这里显示 -->
+                </div>
+                <div id="backtest-empty" class="text-center text-muted">
+                  <i class="fas fa-chart-line fa-3x mb-3"></i>
+                  <p>请配置回测参数并开始回测</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 回测历史 -->
+        <div class="row mt-3">
+          <div class="col-12">
+            <div class="card">
+              <div class="card-header">
+                <h5><i class="fas fa-history me-2"></i>回测历史</h5>
+              </div>
+              <div class="card-body">
+                <div id="backtest-history">
+                  <!-- 回测历史将通过JavaScript加载 -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 系统配置页面 -->
+      <div id="config-tab" class="tab-content">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">
+                <h5><i class="fas fa-cog me-2"></i>系统配置</h5>
+              </div>
+              <div class="card-body">
+                <div id="config-editor">
+                  <!-- 配置编辑器将通过JavaScript加载 -->
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">
+                <h5><i class="fas fa-info-circle me-2"></i>系统信息</h5>
+              </div>
+              <div class="card-body">
+                <div id="system-info">
+                  <!-- 系统信息将通过JavaScript加载 -->
+                </div>
+              </div>
+            </div>
+
+            <div class="card mt-3">
+              <div class="card-header">
+                <h5><i class="fas fa-database me-2"></i>数据管理</h5>
+              </div>
+              <div class="card-body">
+                <div class="d-grid gap-2">
+                  <button class="btn btn-info" onclick="clearCache()">
+                    <i class="fas fa-broom me-2"></i>清除缓存
+                  </button>
+                  <button class="btn btn-warning" onclick="resetConfig()">
+                    <i class="fas fa-undo me-2"></i>重置配置
+                  </button>
+                  <button class="btn btn-secondary" onclick="getCacheInfo()">
+                    <i class="fas fa-info-circle me-2"></i>缓存信息
+                  </button>
+                  <button class="btn btn-success" onclick="exportData()">
+                    <i class="fas fa-download me-2"></i>导出数据
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 模态框 -->
+    <div class="modal fade" id="stockDetailModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">股票详情</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              title="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div id="stock-detail-content">
+              <!-- 股票详情内容 -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 通知Toast -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+      <div id="toast" class="toast" role="alert">
+        <div class="toast-header">
+          <strong class="me-auto">系统通知</strong>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="toast"
+            title="Close"
+          ></button>
+        </div>
+        <div class="toast-body">
+          <!-- 通知内容 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- JavaScript 库 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/datatables@1.10.18/media/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="/static/js/main.js?v=3"></script>
+  </body>
+</html>

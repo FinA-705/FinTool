@@ -1,0 +1,30 @@
+/* 深色主题支持 */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #212529;
+    color: #fff;
+  }
+
+  .card {
+    background-color: #343a40;
+    border-color: #495057;
+  }
+
+  .card-header {
+    background-color: #495057;
+    border-color: #6c757d;
+    color: #fff;
+  }
+
+  .table {
+    background-color: #343a40;
+    color: #fff;
+  }
+
+  .form-control,
+  .form-select {
+    background-color: #495057;
+    border-color: #6c757d;
+    color: #fff;
+  }
+}

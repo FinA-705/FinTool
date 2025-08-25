@@ -1,0 +1,6 @@
+# ... existing code ...
+@data_router.route('/export', methods=['GET'])
+def export_data_route():
+# ... existing code ...
+    except Exception as e:
+        return jsonify(create_response(False, message=str(e))), 500

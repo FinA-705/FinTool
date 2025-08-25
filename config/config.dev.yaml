@@ -1,0 +1,20 @@
+cache:
+  expire_seconds: 3600
+  type: memory
+data_sources:
+  tushare:
+    timeout: 10
+    token: your_dev_tushare_token
+debug: true
+extends: config.example.yaml
+logging:
+  file_path: logs/dev.log
+  level: DEBUG
+performance:
+  max_concurrent_requests: 3
+  request_timeout: 10
+webapp:
+  auto_reload: true
+  debug: true
+  host: 127.0.0.1
+  port: 8000

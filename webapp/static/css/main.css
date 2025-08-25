@@ -1,0 +1,504 @@
+/* 财务智能体主样式文件 */
+
+/* 基础样式 */
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f9fa;
+}
+
+/* 导航栏样式 */
+.navbar-brand {
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+
+.navbar-nav .nav-link {
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  margin: 0 0.2rem;
+  transition: all 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.navbar-nav .nav-link.active {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* 卡片样式 */
+.card {
+  border: none;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+  background-color: #fff;
+  border-bottom: 1px solid #dee2e6;
+  font-weight: 600;
+}
+
+/* 统计卡片样式 */
+.stat-card {
+  border-radius: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+/* 标签页内容 */
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 表格样式 */
+.table {
+  background-color: white;
+}
+
+.table th {
+  border-top: none;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+/* 按钮样式 */
+.btn {
+  font-weight: 500;
+  border-radius: 0.375rem;
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+}
+
+.btn-sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+/* 表单样式 */
+.form-control,
+.form-select {
+  border-radius: 0.375rem;
+  border: 1px solid #ced4da;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* 图表容器 */
+.chart-container {
+  height: 300px;
+  width: 100%;
+}
+
+/* 隐藏的元素 */
+.d-none {
+  display: none !important;
+}
+
+/* 显示的元素 */
+.d-block {
+  display: block !important;
+}
+
+/* 加载动画 */
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+/* 通知样式 */
+.alert-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+/* 策略卡片 */
+.strategy-card {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.strategy-card:hover {
+  border-color: #007bff;
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 123, 255, 0.2);
+}
+
+.strategy-card.active {
+  border-color: #007bff;
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+/* 回测结果样式 */
+.metric-card {
+  text-align: center;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+}
+
+.metric-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #495057;
+}
+
+.metric-label {
+  font-size: 0.875rem;
+  color: #6c757d;
+  margin-top: 0.25rem;
+}
+
+/* 成功/失败颜色 */
+.text-success {
+  color: #198754 !important;
+}
+.text-danger {
+  color: #dc3545 !important;
+}
+.text-warning {
+  color: #fd7e14 !important;
+}
+.text-info {
+  color: #0dcaf0 !important;
+}
+
+/* 背景颜色 */
+.bg-success-light {
+  background-color: rgba(25, 135, 84, 0.1) !important;
+}
+.bg-danger-light {
+  background-color: rgba(220, 53, 69, 0.1) !important;
+}
+.bg-warning-light {
+  background-color: rgba(253, 126, 20, 0.1) !important;
+}
+.bg-info-light {
+  background-color: rgba(13, 202, 240, 0.1) !important;
+}
+
+/* 进度条样式 */
+.progress {
+  height: 0.5rem;
+  border-radius: 0.25rem;
+}
+
+/* 配置编辑器 */
+.config-item {
+  padding: 0.75rem;
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+  margin-bottom: 0.5rem;
+  background-color: white;
+}
+
+.config-item:hover {
+  border-color: #007bff;
+}
+
+.config-key {
+  font-weight: 600;
+  color: #495057;
+}
+
+.config-value {
+  color: #6c757d;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .container-fluid {
+    padding: 0.5rem;
+  }
+
+  .card {
+    margin-bottom: 1rem;
+  }
+
+  .stat-card h3 {
+    font-size: 1.5rem;
+  }
+
+  .table-responsive {
+    font-size: 0.875rem;
+  }
+
+  .btn {
+    font-size: 0.875rem;
+    padding: 0.375rem 0.75rem;
+  }
+}
+
+/* 深色主题支持 */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #212529;
+    color: #fff;
+  }
+
+  .card {
+    background-color: #343a40;
+    border-color: #495057;
+  }
+
+  .card-header {
+    background-color: #495057;
+    border-color: #6c757d;
+    color: #fff;
+  }
+
+  .table {
+    background-color: #343a40;
+    color: #fff;
+  }
+
+  .form-control,
+  .form-select {
+    background-color: #495057;
+    border-color: #6c757d;
+    color: #fff;
+  }
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* 动画效果 */
+.fadeIn {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.slideIn {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* 工具提示样式 */
+.tooltip {
+  font-size: 0.875rem;
+}
+
+/* 徽章样式 */
+.badge {
+  font-weight: 500;
+}
+
+/* 列表组样式 */
+.list-group-item {
+  border-color: #dee2e6;
+  transition: all 0.3s ease;
+}
+
+.list-group-item:hover {
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+/* 模态框样式 */
+.modal-content {
+  border-radius: 0.5rem;
+  border: none;
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+}
+
+.modal-header {
+  border-bottom-color: #dee2e6;
+}
+
+.modal-footer {
+  border-top-color: #dee2e6;
+}
+
+/* Toast通知样式 */
+.toast {
+  border-radius: 0.5rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* 加载状态 */
+.loading {
+  position: relative;
+}
+
+.loading::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 空状态样式 */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #6c757d;
+}
+
+.empty-state i {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+/* 数据表格优化 */
+.dataTables_wrapper {
+  padding: 0;
+}
+
+.dataTables_filter input {
+  border-radius: 0.375rem;
+  border: 1px solid #ced4da;
+  padding: 0.375rem 0.75rem;
+}
+
+.dataTables_length select {
+  border-radius: 0.375rem;
+  border: 1px solid #ced4da;
+  padding: 0.375rem 0.75rem;
+}
+
+/* 图表样式优化 */
+.plotly-graph-div {
+  border-radius: 0.375rem;
+}
+
+/* 成功/错误消息样式 */
+.message {
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
+}
+
+.message.success {
+  background-color: #d1edff;
+  border: 1px solid #bee5eb;
+  color: #0c5460;
+}
+
+.message.error {
+  background-color: #f8d7da;
+  border: 1px solid #f1aeb5;
+  color: #721c24;
+}
+
+.message.warning {
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  color: #856404;
+}
+
+/* 搜索框样式 */
+.search-box {
+  position: relative;
+}
+
+.search-box .fa-search {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
+}
+
+/* 标签样式 */
+.tag {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  margin: 0.125rem;
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+.tag.primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.tag.success {
+  background-color: #28a745;
+  color: white;
+}
+
+.tag.warning {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.tag.danger {
+  background-color: #dc3545;
+  color: white;
+}

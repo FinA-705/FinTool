@@ -1,0 +1,66 @@
+market_specific:
+  A股:
+    currency: CNY
+    settlement_days: 1
+    trading_hours: 09:30-15:00
+  HK:
+    currency: HKD
+    settlement_days: 2
+    trading_hours: 09:30-16:00
+  US:
+    currency: USD
+    settlement_days: 2
+    trading_hours: 09:30-16:00
+scoring:
+  debt_to_equity_ranges:
+    excellent:
+    - 0
+    - 0.3
+    fair:
+    - 0.5
+    - 0.8
+    good:
+    - 0.3
+    - 0.5
+    poor:
+    - 0.8
+    - 999
+  pb_ratio_ranges:
+    excellent:
+    - 0
+    - 1.0
+    fair:
+    - 1.5
+    - 2.5
+    good:
+    - 1.0
+    - 1.5
+    poor:
+    - 2.5
+    - 999
+  pe_ratio_ranges:
+    excellent:
+    - 0
+    - 10
+    fair:
+    - 15
+    - 25
+    good:
+    - 10
+    - 15
+    poor:
+    - 25
+    - 999
+  roe_ranges:
+    excellent:
+    - 0.15
+    - 999
+    fair:
+    - 0.05
+    - 0.1
+    good:
+    - 0.1
+    - 0.15
+    poor:
+    - 0
+    - 0.05

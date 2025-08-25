@@ -1,0 +1,63 @@
+/* 卡片样式 */
+.card {
+  border: none;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+  background-color: #fff;
+  border-bottom: 1px solid #dee2e6;
+  font-weight: 600;
+}
+
+/* 统计卡片样式 */
+.stat-card {
+  border-radius: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+/* 策略卡片 */
+.strategy-card {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.strategy-card:hover {
+  border-color: #007bff;
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 123, 255, 0.2);
+}
+
+.strategy-card.active {
+  border-color: #007bff;
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+/* 回测结果指标卡片 */
+.metric-card {
+  text-align: center;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+}
+
+.metric-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #495057;
+}
+
+.metric-label {
+  font-size: 0.875rem;
+  color: #6c757d;
+  margin-top: 0.25rem;
+}
