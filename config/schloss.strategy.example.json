@@ -5,7 +5,7 @@
     "max_pe_ratio": 12,
     "min_pb_ratio": 0.4,
     "max_pb_ratio": 1.2,
-    "min_roe": 0.10,
+    "min_roe": 0.1,
     "max_debt_to_equity": 0.5,
     "min_current_ratio": 1.5,
     "min_revenue_growth": -0.05,
@@ -15,8 +15,8 @@
   },
   "weight_config": {
     "value_score": 0.45,
-    "quality_score": 0.30,
-    "safety_score": 0.20,
+    "quality_score": 0.3,
+    "safety_score": 0.2,
     "growth_score": 0.05
   },
   "filters": {

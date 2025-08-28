@@ -401,10 +401,12 @@ async def get_metrics_bad_codes(api_service=Depends(get_api_service)):
         if not codes:
             try:
                 from core.database import stock_db
+
                 db_metrics = stock_db.get_stock_metrics(cache_hours=24) or {}
                 from webapp.services.stock_data_service import (
                     is_metrics_anomalous as _is_bad,
                 )
+
                 recomputed = []
                 for symbol, m in db_metrics.items():
                     if not m or not isinstance(m, dict):
@@ -412,6 +414,7 @@ async def get_metrics_bad_codes(api_service=Depends(get_api_service)):
                         continue
                     if _is_bad(m):
                         recomputed.append(symbol)
+
                 def to_ts_code(code: str) -> str:
                     if not code:
                         return code
@@ -423,6 +426,7 @@ async def get_metrics_bad_codes(api_service=Depends(get_api_service)):
                     if code.startswith("6"):
                         return f"{code}.SH"
                     return code
+
                 codes = sorted({to_ts_code(c) for c in recomputed if c})
                 api_service.set_cached_data("metrics_bad_codes", codes, ttl=1800)
             except Exception as _re:

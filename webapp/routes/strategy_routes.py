@@ -209,12 +209,18 @@ async def execute_strategy(
                         metrics_map.setdefault(k, v)
 
             # 构建用于映射的纯代码列
-            df["pure_code"] = df["ts_code"].astype(str).apply(_pure) if "ts_code" in df.columns else ""
+            df["pure_code"] = (
+                df["ts_code"].astype(str).apply(_pure)
+                if "ts_code" in df.columns
+                else ""
+            )
 
             df["stock_code"] = df.get("ts_code")
             df["stock_name"] = df.get("name")
             df["sector"] = df["industry"].fillna("") if "industry" in df.columns else ""
-            df["listing_date"] = df["list_date"].fillna("") if "list_date" in df.columns else ""
+            df["listing_date"] = (
+                df["list_date"].fillna("") if "list_date" in df.columns else ""
+            )
 
             # 从 metrics_map 合并关键财务字段（严格使用 DB 数据）
             def mget(pure, key, default=math.nan):
@@ -228,11 +234,17 @@ async def execute_strategy(
             df["pb_ratio"] = df["pure_code"].apply(lambda c: mget(c, "pb"))
             df["roe"] = df["pure_code"].apply(lambda c: mget(c, "roe"))
             df["roa"] = df["pure_code"].apply(lambda c: mget(c, "roa"))
-            df["debt_to_equity"] = df["pure_code"].apply(lambda c: mget(c, "debt_ratio"))
+            df["debt_to_equity"] = df["pure_code"].apply(
+                lambda c: mget(c, "debt_ratio")
+            )
             if "avg_volume" not in df.columns:
-                df["avg_volume"] = df["pure_code"].apply(lambda c: mget(c, "volume", 2_000_000))
+                df["avg_volume"] = df["pure_code"].apply(
+                    lambda c: mget(c, "volume", 2_000_000)
+                )
             # 额外保留价格相关（用于调试/展示）
-            df["current_price"] = df["pure_code"].apply(lambda c: mget(c, "current_price"))
+            df["current_price"] = df["pure_code"].apply(
+                lambda c: mget(c, "current_price")
+            )
             df["change_pct"] = df["pure_code"].apply(lambda c: mget(c, "change_pct"))
             df["eps"] = df["pure_code"].apply(lambda c: mget(c, "eps"))
 
@@ -287,7 +299,11 @@ async def execute_strategy(
                         "code": r.stock_code,
                         "name": r.stock_name,
                         "score": round(r.score, 1),
-                        "reason": ", ".join(getattr(r, "reasons", [])[:2]) if getattr(r, "reasons", None) else "符合策略条件",
+                        "reason": (
+                            ", ".join(getattr(r, "reasons", [])[:2])
+                            if getattr(r, "reasons", None)
+                            else "符合策略条件"
+                        ),
                         "warnings": getattr(r, "warnings", []),
                         "metadata": getattr(r, "metadata", {}),
                     }
@@ -323,7 +339,7 @@ async def execute_strategy(
                     s["selection_reasons"] = reasons
                     filtered.append(s)
 
-            for i, s in enumerate(filtered[: top_n]):
+            for i, s in enumerate(filtered[:top_n]):
                 score = 85 - (i * 2)
                 rs = s.get("selection_reasons", ["符合基本筛选条件"])
                 selected_results.append(
@@ -348,11 +364,17 @@ async def execute_strategy(
             "execution_time": round(elapsed, 3),
             "total_stocks": total_stocks,
             "selected_count": len(selected_results),
-            "selection_ratio": round(len(selected_results) / total_stocks * 100, 2) if total_stocks > 0 else 0,
+            "selection_ratio": (
+                round(len(selected_results) / total_stocks * 100, 2)
+                if total_stocks > 0
+                else 0
+            ),
             "data": selected_results,
             "execution_timestamp": datetime.now().isoformat(),
         }
-        return SuccessResponse(message=f"策略执行成功，筛选出{len(selected_results)}只股票", data=payload)
+        return SuccessResponse(
+            message=f"策略执行成功，筛选出{len(selected_results)}只股票", data=payload
+        )
     except Exception as e:  # noqa: BLE001
         logger.error(f"执行策略失败: {e}")
         raise HTTPException(status_code=500, detail=f"执行策略失败: {str(e)}")

@@ -405,10 +405,14 @@ async def cache_financial_metrics_batch(
                 else:
                     # 如果当前数据正常，从缓存的异常列表中移除此代码，避免误报长期滞留
                     try:
-                        existing = api_service.get_cached_data("metrics_bad_codes") or []
+                        existing = (
+                            api_service.get_cached_data("metrics_bad_codes") or []
+                        )
                         if isinstance(existing, list) and ts_code in existing:
                             updated = [c for c in existing if c != ts_code]
-                            api_service.set_cached_data("metrics_bad_codes", updated, ttl=1800)
+                            api_service.set_cached_data(
+                                "metrics_bad_codes", updated, ttl=1800
+                            )
                     except Exception:
                         pass
 
@@ -432,11 +436,15 @@ async def cache_financial_metrics_batch(
                     )
                     try:
                         # 将本批结果与缓存中的异常列表做并集，避免覆盖丢失
-                        existing = api_service.get_cached_data("metrics_bad_codes") or []
+                        existing = (
+                            api_service.get_cached_data("metrics_bad_codes") or []
+                        )
                         if not isinstance(existing, list):
                             existing = []
                         merged = sorted(set(existing) | set(bad_list))
-                        api_service.set_cached_data("metrics_bad_codes", merged, ttl=1800)
+                        api_service.set_cached_data(
+                            "metrics_bad_codes", merged, ttl=1800
+                        )
                     except Exception:
                         pass
 

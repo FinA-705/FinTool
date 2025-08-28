@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <!-- Custom Material Design CSS -->
-    <link href="/static/css/material.css?v=1" rel="stylesheet">
-    <link href="/static/css/strategy-extensions.css?v=1" rel="stylesheet">
+    <link href="/static/css/material.css?v=1" rel="stylesheet" />
+    <link href="/static/css/strategy-extensions.css?v=1" rel="stylesheet" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
@@ -39,7 +39,7 @@
     <!-- Chart.js for data visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Custom Material Design CSS (moved to top) -->
+    <!-- Custom Material Design CSS (moved to top) -->
   </head>
   <body class="md-body">
     <!-- App Bar -->
@@ -402,11 +402,17 @@
         <div class="md-view__header">
           <h2 class="md-view__title">投资策略管理</h2>
           <div class="md-view__actions">
-            <button class="md-button md-button--outlined" id="import-strategy-btn">
+            <button
+              class="md-button md-button--outlined"
+              id="import-strategy-btn"
+            >
               <span class="material-icons">upload</span>
               导入策略
             </button>
-            <button class="md-button md-button--filled" id="create-strategy-btn">
+            <button
+              class="md-button md-button--filled"
+              id="create-strategy-btn"
+            >
               <span class="material-icons">add</span>
               创建策略
             </button>
@@ -419,8 +425,16 @@
             <div class="md-strategy-filters">
               <div class="md-text-field">
                 <label for="strategy-search">搜索策略</label>
-                <input type="text" id="strategy-search" placeholder="按名称或描述搜索">
-                <span class="material-icons md-text-field__icon" aria-hidden="true">search</span>
+                <input
+                  type="text"
+                  id="strategy-search"
+                  placeholder="按名称或描述搜索"
+                />
+                <span
+                  class="material-icons md-text-field__icon"
+                  aria-hidden="true"
+                  >search</span
+                >
               </div>
 
               <div class="md-select">
@@ -433,7 +447,9 @@
                   <option value="fundamental">基本面分析</option>
                   <option value="custom">自定义策略</option>
                 </select>
-                <span class="material-icons md-select__icon" aria-hidden="true">expand_more</span>
+                <span class="material-icons md-select__icon" aria-hidden="true"
+                  >expand_more</span
+                >
               </div>
 
               <div class="md-select">
@@ -444,7 +460,9 @@
                   <option value="inactive">未激活</option>
                   <option value="testing">测试中</option>
                 </select>
-                <span class="material-icons md-select__icon" aria-hidden="true">expand_more</span>
+                <span class="material-icons md-select__icon" aria-hidden="true"
+                  >expand_more</span
+                >
               </div>
             </div>
           </div>
@@ -456,7 +474,7 @@
         </div>
 
         <!-- 策略创建/编辑模态框 -->
-        <div class="md-modal" id="strategy-modal" style="display: none;">
+        <div class="md-modal" id="strategy-modal" style="display: none">
           <div class="md-modal__scrim"></div>
           <div class="md-modal__content">
             <div class="md-modal__header">
@@ -469,12 +487,16 @@
               <form id="strategy-form" class="md-strategy-form">
                 <div class="md-text-field">
                   <label for="strategy-name">策略名称</label>
-                  <input type="text" id="strategy-name" required>
+                  <input type="text" id="strategy-name" required />
                 </div>
 
                 <div class="md-text-field">
                   <label for="strategy-description">策略描述</label>
-                  <textarea id="strategy-description" rows="3" placeholder="描述策略的目标和特点"></textarea>
+                  <textarea
+                    id="strategy-description"
+                    rows="3"
+                    placeholder="描述策略的目标和特点"
+                  ></textarea>
                 </div>
 
                 <div class="md-select">
@@ -487,7 +509,9 @@
                     <option value="fundamental">基本面分析</option>
                     <option value="custom">自定义策略</option>
                   </select>
-                  <span class="material-icons md-select__icon">expand_more</span>
+                  <span class="material-icons md-select__icon"
+                    >expand_more</span
+                  >
                 </div>
 
                 <!-- 筛选条件配置 -->
@@ -499,27 +523,57 @@
                     <div class="md-condition-grid">
                       <div class="md-text-field">
                         <label for="pe-ratio-min">市盈率最小值</label>
-                        <input type="number" id="pe-ratio-min" step="0.1" placeholder="例如: 5">
+                        <input
+                          type="number"
+                          id="pe-ratio-min"
+                          step="0.1"
+                          placeholder="例如: 5"
+                        />
                       </div>
                       <div class="md-text-field">
                         <label for="pe-ratio-max">市盈率最大值</label>
-                        <input type="number" id="pe-ratio-max" step="0.1" placeholder="例如: 20">
+                        <input
+                          type="number"
+                          id="pe-ratio-max"
+                          step="0.1"
+                          placeholder="例如: 20"
+                        />
                       </div>
                       <div class="md-text-field">
                         <label for="pb-ratio-min">市净率最小值</label>
-                        <input type="number" id="pb-ratio-min" step="0.1" placeholder="例如: 0.5">
+                        <input
+                          type="number"
+                          id="pb-ratio-min"
+                          step="0.1"
+                          placeholder="例如: 0.5"
+                        />
                       </div>
                       <div class="md-text-field">
                         <label for="pb-ratio-max">市净率最大值</label>
-                        <input type="number" id="pb-ratio-max" step="0.1" placeholder="例如: 3">
+                        <input
+                          type="number"
+                          id="pb-ratio-max"
+                          step="0.1"
+                          placeholder="例如: 3"
+                        />
                       </div>
                       <div class="md-text-field">
                         <label for="roe-min">ROE最小值 (%)</label>
-                        <input type="number" id="roe-min" step="0.1" placeholder="例如: 10">
+                        <input
+                          type="number"
+                          id="roe-min"
+                          step="0.1"
+                          placeholder="例如: 10"
+                        />
                       </div>
                       <div class="md-text-field">
                         <label for="debt-ratio-max">负债率最大值 (%)</label>
-                        <input type="number" id="debt-ratio-max" step="0.1" placeholder="例如: 60">
+                        <input
+                          type="number"
+                          id="debt-ratio-max"
+                          step="0.1"
+                          placeholder="例如: 60"
+                        />
                       </div>
                     </div>
                   </div>
@@ -529,11 +583,21 @@
                     <div class="md-condition-grid">
                       <div class="md-text-field">
                         <label for="market-cap-min">最小市值 (亿元)</label>
-                        <input type="number" id="market-cap-min" step="1" placeholder="例如: 50">
+                        <input
+                          type="number"
+                          id="market-cap-min"
+                          step="1"
+                          placeholder="例如: 50"
+                        />
                       </div>
                       <div class="md-text-field">
                         <label for="market-cap-max">最大市值 (亿元)</label>
-                        <input type="number" id="market-cap-max" step="1" placeholder="例如: 1000">
+                        <input
+                          type="number"
+                          id="market-cap-max"
+                          step="1"
+                          placeholder="例如: 1000"
+                        />
                       </div>
                       <div class="md-select">
                         <label for="allowed-markets">允许的市场</label>
@@ -542,7 +606,9 @@
                           <option value="us">美股市场</option>
                           <option value="hk">港股市场</option>
                         </select>
-                        <span class="material-icons md-select__icon">expand_more</span>
+                        <span class="material-icons md-select__icon"
+                          >expand_more</span
+                        >
                       </div>
                     </div>
                   </div>
@@ -552,11 +618,19 @@
                     <div class="md-condition-grid">
                       <div class="md-text-field">
                         <label for="included-industries">包含行业</label>
-                        <input type="text" id="included-industries" placeholder="用逗号分隔，例如: 银行,保险,房地产">
+                        <input
+                          type="text"
+                          id="included-industries"
+                          placeholder="用逗号分隔，例如: 银行,保险,房地产"
+                        />
                       </div>
                       <div class="md-text-field">
                         <label for="excluded-industries">排除行业</label>
-                        <input type="text" id="excluded-industries" placeholder="用逗号分隔，例如: 煤炭,钢铁">
+                        <input
+                          type="text"
+                          id="excluded-industries"
+                          placeholder="用逗号分隔，例如: 煤炭,钢铁"
+                        />
                       </div>
                     </div>
                   </div>
@@ -568,22 +642,46 @@
                   <div class="md-weight-grid">
                     <div class="md-weight-item">
                       <label for="financial-weight">财务指标权重</label>
-                      <input type="range" id="financial-weight" min="0" max="100" value="40">
+                      <input
+                        type="range"
+                        id="financial-weight"
+                        min="0"
+                        max="100"
+                        value="40"
+                      />
                       <span class="weight-value">40%</span>
                     </div>
                     <div class="md-weight-item">
                       <label for="growth-weight">成长性权重</label>
-                      <input type="range" id="growth-weight" min="0" max="100" value="30">
+                      <input
+                        type="range"
+                        id="growth-weight"
+                        min="0"
+                        max="100"
+                        value="30"
+                      />
                       <span class="weight-value">30%</span>
                     </div>
                     <div class="md-weight-item">
                       <label for="valuation-weight">估值权重</label>
-                      <input type="range" id="valuation-weight" min="0" max="100" value="20">
+                      <input
+                        type="range"
+                        id="valuation-weight"
+                        min="0"
+                        max="100"
+                        value="20"
+                      />
                       <span class="weight-value">20%</span>
                     </div>
                     <div class="md-weight-item">
                       <label for="risk-weight">风险控制权重</label>
-                      <input type="range" id="risk-weight" min="0" max="100" value="10">
+                      <input
+                        type="range"
+                        id="risk-weight"
+                        min="0"
+                        max="100"
+                        value="10"
+                      />
                       <span class="weight-value">10%</span>
                     </div>
                   </div>
@@ -591,14 +689,27 @@
               </form>
             </div>
             <div class="md-modal__actions">
-              <button type="button" class="md-button md-button--text" id="cancel-strategy-btn">
+              <button
+                type="button"
+                class="md-button md-button--text"
+                id="cancel-strategy-btn"
+              >
                 取消
               </button>
-              <button type="button" class="md-button md-button--outlined" id="test-strategy-btn">
+              <button
+                type="button"
+                class="md-button md-button--outlined"
+                id="test-strategy-btn"
+              >
                 <span class="material-icons">science</span>
                 测试策略
               </button>
-              <button type="submit" form="strategy-form" class="md-button md-button--filled" id="save-strategy-btn">
+              <button
+                type="submit"
+                form="strategy-form"
+                class="md-button md-button--filled"
+                id="save-strategy-btn"
+              >
                 <span class="material-icons">save</span>
                 保存策略
               </button>

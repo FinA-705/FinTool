@@ -3,9 +3,9 @@ schloss:
   filters:
     exclude_sectors: []
     markets:
-    - A股
-    - US
-    - HK
+      - A股
+      - US
+      - HK
   name: schloss
   parameters:
     exclude_financial: false

@@ -6,8 +6,8 @@ const StrategiesManager = {
   // 加载策略
   load: async () => {
     try {
-  // 注入工具栏（一次性）
-  StrategiesManager._ensureToolbar();
+      // 注入工具栏（一次性）
+      StrategiesManager._ensureToolbar();
 
       const response = await StrategyAPI.list();
 
@@ -136,10 +136,12 @@ const StrategiesManager = {
       version: "1.0.0",
       parameters: { score_formula: scoreFormula },
       weight_config: {},
-      filters: { tags: (filtersRaw || "")
+      filters: {
+        tags: (filtersRaw || "")
           .split("\n")
           .map((s) => s.trim())
-          .filter(Boolean) },
+          .filter(Boolean),
+      },
       enabled: true,
     };
 
@@ -353,7 +355,10 @@ const StrategiesManager = {
     StrategyAPI.enable(name, !!enabled)
       .then((resp) => {
         if (resp.success) {
-          Utils.showToast(`已${enabled ? "启用" : "禁用"}策略 ${name}`, "success");
+          Utils.showToast(
+            `已${enabled ? "启用" : "禁用"}策略 ${name}`,
+            "success"
+          );
           StrategiesManager.load();
         } else {
           Utils.showToast(resp.message || "操作失败", "error");
@@ -391,7 +396,9 @@ const StrategiesManager = {
         return;
       }
       const data = resp.data || {};
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: "application/json",
+      });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = `${name}.strategy.json`;
@@ -444,9 +451,9 @@ const StrategiesManager = {
       const content = `
         <div class="mb-2">
           <label class="form-label">版本</label>
-          <input id="_st_ver" class="form-control" value="${
-            (data.version || "").toString().replace(/"/g, "&quot;")
-          }" />
+          <input id="_st_ver" class="form-control" value="${(data.version || "")
+            .toString()
+            .replace(/"/g, "&quot;")}" />
         </div>
         <div class="form-check form-switch mb-2">
           <input class="form-check-input" type="checkbox" id="_st_enabled" ${
@@ -456,63 +463,95 @@ const StrategiesManager = {
         </div>
         <div class="mb-2">
           <label class="form-label">参数 (JSON)</label>
-          <textarea id="_st_params" class="form-control" rows="6">${
-            JSON.stringify(data.parameters || {}, null, 2)
-          }</textarea>
+          <textarea id="_st_params" class="form-control" rows="6">${JSON.stringify(
+            data.parameters || {},
+            null,
+            2
+          )}</textarea>
         </div>
         <div class="mb-2">
           <label class="form-label">权重 (JSON)</label>
-          <textarea id="_st_weights" class="form-control" rows="6">${
-            JSON.stringify(data.weight_config || {}, null, 2)
-          }</textarea>
+          <textarea id="_st_weights" class="form-control" rows="6">${JSON.stringify(
+            data.weight_config || {},
+            null,
+            2
+          )}</textarea>
         </div>
         <div class="mb-2">
           <label class="form-label">过滤器 (JSON)</label>
-          <textarea id="_st_filters" class="form-control" rows="6">${
-            JSON.stringify(data.filters || {}, null, 2)
-          }</textarea>
+          <textarea id="_st_filters" class="form-control" rows="6">${JSON.stringify(
+            data.filters || {},
+            null,
+            2
+          )}</textarea>
         </div>
       `;
 
       StrategiesManager._showModal(`编辑策略 - ${name}`, content, async () => {
         try {
-          const version = document.getElementById('_st_ver').value;
-          const enabled = document.getElementById('_st_enabled').checked;
-          let parameters = {}, weight_config = {}, filters = {};
-          try { parameters = JSON.parse(document.getElementById('_st_params').value || '{}'); } catch { throw new Error('参数 JSON 无效'); }
-          try { weight_config = JSON.parse(document.getElementById('_st_weights').value || '{}'); } catch { throw new Error('权重 JSON 无效'); }
-          try { filters = JSON.parse(document.getElementById('_st_filters').value || '{}'); } catch { throw new Error('过滤器 JSON 无效'); }
+          const version = document.getElementById("_st_ver").value;
+          const enabled = document.getElementById("_st_enabled").checked;
+          let parameters = {},
+            weight_config = {},
+            filters = {};
+          try {
+            parameters = JSON.parse(
+              document.getElementById("_st_params").value || "{}"
+            );
+          } catch {
+            throw new Error("参数 JSON 无效");
+          }
+          try {
+            weight_config = JSON.parse(
+              document.getElementById("_st_weights").value || "{}"
+            );
+          } catch {
+            throw new Error("权重 JSON 无效");
+          }
+          try {
+            filters = JSON.parse(
+              document.getElementById("_st_filters").value || "{}"
+            );
+          } catch {
+            throw new Error("过滤器 JSON 无效");
+          }
 
-          const updates = { version, parameters, weight_config, filters, enabled };
+          const updates = {
+            version,
+            parameters,
+            weight_config,
+            filters,
+            enabled,
+          };
           const resp2 = await StrategyAPI.update(name, updates);
           if (resp2 && resp2.success) {
-            Utils.showToast('保存成功', 'success');
+            Utils.showToast("保存成功", "success");
             StrategiesManager.load();
             return true; // 关闭
           } else {
-            Utils.showToast((resp2 && resp2.message) || '保存失败', 'error');
+            Utils.showToast((resp2 && resp2.message) || "保存失败", "error");
             return false;
           }
         } catch (e) {
           console.error(e);
-          Utils.showToast(e.message || '保存失败', 'error');
+          Utils.showToast(e.message || "保存失败", "error");
           return false;
         }
       });
     } catch (e) {
       console.error(e);
-      Utils.showToast('获取策略失败', 'error');
+      Utils.showToast("获取策略失败", "error");
     }
   },
 
   // ========== 辅助UI ==========
 
   _ensureToolbar: () => {
-    const toolbarId = 'strategies-toolbar-actions';
+    const toolbarId = "strategies-toolbar-actions";
     if (document.getElementById(toolbarId)) return;
-    const toolbar = document.createElement('div');
+    const toolbar = document.createElement("div");
     toolbar.id = toolbarId;
-    toolbar.className = 'mb-2 d-flex gap-2';
+    toolbar.className = "mb-2 d-flex gap-2";
     toolbar.innerHTML = `
       <button id="btn-strategy-create" class="btn btn-outline-primary btn-sm">
         <i class="fas fa-plus"></i> 新建策略
@@ -524,43 +563,67 @@ const StrategiesManager = {
         <i class="fas fa-sync"></i> 刷新
       </button>
     `;
-    const container = document.getElementById('strategies-list');
+    const container = document.getElementById("strategies-list");
     if (container && container.parentElement) {
       container.parentElement.insertBefore(toolbar, container);
     } else {
       document.body.insertBefore(toolbar, document.body.firstChild);
     }
 
-    document.getElementById('btn-strategy-create').addEventListener('click', () => {
-      StrategiesManager._openCreateModal();
-    });
-    document.getElementById('btn-strategy-import-global').addEventListener('click', async () => {
-      const name = prompt('导入到策略名称（不存在则创建）：');
-      if (!name) return;
-      const content = await StrategiesManager._promptLarge('粘贴策略配置 JSON', '{\n  "version": "1.0.0",\n  "parameters": {},\n  "weight_config": {},\n  "filters": {},\n  "enabled": true\n}');
-      if (!content) return;
-      let config;
-      try { config = JSON.parse(content); } catch { Utils.showToast('JSON 解析失败', 'error'); return; }
-      // 复用 import 接口：若策略不存在，先 create，再 import
-      try {
-        const list = await StrategyAPI.list();
-        const exists = (list && list.success && (list.data||[]).some(s=>s.name===name));
-        if (!exists) {
-          await StrategyAPI.create({ name, version: config.version||'1.0.0', parameters: config.parameters||{}, weight_config: config.weight_config||{}, filters: config.filters||{}, enabled: !!config.enabled });
+    document
+      .getElementById("btn-strategy-create")
+      .addEventListener("click", () => {
+        StrategiesManager._openCreateModal();
+      });
+    document
+      .getElementById("btn-strategy-import-global")
+      .addEventListener("click", async () => {
+        const name = prompt("导入到策略名称（不存在则创建）：");
+        if (!name) return;
+        const content = await StrategiesManager._promptLarge(
+          "粘贴策略配置 JSON",
+          '{\n  "version": "1.0.0",\n  "parameters": {},\n  "weight_config": {},\n  "filters": {},\n  "enabled": true\n}'
+        );
+        if (!content) return;
+        let config;
+        try {
+          config = JSON.parse(content);
+        } catch {
+          Utils.showToast("JSON 解析失败", "error");
+          return;
         }
-        const resp = await StrategyAPI.import(name, config);
-        if (resp && resp.success) {
-          Utils.showToast('导入成功', 'success');
-          StrategiesManager.load();
-        } else {
-          Utils.showToast((resp && resp.message) || '导入失败', 'error');
+        // 复用 import 接口：若策略不存在，先 create，再 import
+        try {
+          const list = await StrategyAPI.list();
+          const exists =
+            list &&
+            list.success &&
+            (list.data || []).some((s) => s.name === name);
+          if (!exists) {
+            await StrategyAPI.create({
+              name,
+              version: config.version || "1.0.0",
+              parameters: config.parameters || {},
+              weight_config: config.weight_config || {},
+              filters: config.filters || {},
+              enabled: !!config.enabled,
+            });
+          }
+          const resp = await StrategyAPI.import(name, config);
+          if (resp && resp.success) {
+            Utils.showToast("导入成功", "success");
+            StrategiesManager.load();
+          } else {
+            Utils.showToast((resp && resp.message) || "导入失败", "error");
+          }
+        } catch (e) {
+          console.error(e);
+          Utils.showToast("导入失败", "error");
         }
-      } catch (e) {
-        console.error(e);
-        Utils.showToast('导入失败', 'error');
-      }
-    });
-    document.getElementById('btn-strategy-refresh').addEventListener('click', () => StrategiesManager.load());
+      });
+    document
+      .getElementById("btn-strategy-refresh")
+      .addEventListener("click", () => StrategiesManager.load());
   },
 
   _openCreateModal: () => {
@@ -590,33 +653,67 @@ const StrategiesManager = {
         <label class="form-check-label" for="_st_new_enabled">启用</label>
       </div>
     `;
-    StrategiesManager._showModal('新建策略', content, async () => {
-      const name = document.getElementById('_st_new_name').value.trim();
-      if (!name) { Utils.showToast('名称不能为空', 'warning'); return false; }
-      const version = document.getElementById('_st_new_ver').value;
-      let parameters = {}, weight_config = {}, filters = {};
-      try { parameters = JSON.parse(document.getElementById('_st_new_params').value || '{}'); } catch { Utils.showToast('参数 JSON 无效', 'error'); return false; }
-      try { weight_config = JSON.parse(document.getElementById('_st_new_weights').value || '{}'); } catch { Utils.showToast('权重 JSON 无效', 'error'); return false; }
-      try { filters = JSON.parse(document.getElementById('_st_new_filters').value || '{}'); } catch { Utils.showToast('过滤器 JSON 无效', 'error'); return false; }
-      const enabled = document.getElementById('_st_new_enabled').checked;
-      const resp = await StrategyAPI.create({ name, version, parameters, weight_config, filters, enabled });
+    StrategiesManager._showModal("新建策略", content, async () => {
+      const name = document.getElementById("_st_new_name").value.trim();
+      if (!name) {
+        Utils.showToast("名称不能为空", "warning");
+        return false;
+      }
+      const version = document.getElementById("_st_new_ver").value;
+      let parameters = {},
+        weight_config = {},
+        filters = {};
+      try {
+        parameters = JSON.parse(
+          document.getElementById("_st_new_params").value || "{}"
+        );
+      } catch {
+        Utils.showToast("参数 JSON 无效", "error");
+        return false;
+      }
+      try {
+        weight_config = JSON.parse(
+          document.getElementById("_st_new_weights").value || "{}"
+        );
+      } catch {
+        Utils.showToast("权重 JSON 无效", "error");
+        return false;
+      }
+      try {
+        filters = JSON.parse(
+          document.getElementById("_st_new_filters").value || "{}"
+        );
+      } catch {
+        Utils.showToast("过滤器 JSON 无效", "error");
+        return false;
+      }
+      const enabled = document.getElementById("_st_new_enabled").checked;
+      const resp = await StrategyAPI.create({
+        name,
+        version,
+        parameters,
+        weight_config,
+        filters,
+        enabled,
+      });
       if (resp && resp.success) {
-        Utils.showToast('创建成功', 'success');
+        Utils.showToast("创建成功", "success");
         StrategiesManager.load();
         return true;
       } else {
-        Utils.showToast((resp && resp.message) || '创建失败', 'error');
+        Utils.showToast((resp && resp.message) || "创建失败", "error");
         return false;
       }
     });
   },
 
   _showModal: (title, innerHTML, onSubmit) => {
-    const overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:1050;display:flex;align-items:center;justify-content:center;padding:20px;';
-    const box = document.createElement('div');
-    box.className = 'card';
-    box.style.cssText = 'max-width:720px;width:100%;';
+    const overlay = document.createElement("div");
+    overlay.style.cssText =
+      "position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:1050;display:flex;align-items:center;justify-content:center;padding:20px;";
+    const box = document.createElement("div");
+    box.className = "card";
+    box.style.cssText = "max-width:720px;width:100%;";
     box.innerHTML = `
       <div class="card-header d-flex justify-content-between align-items-center">
         <strong>${title}</strong>
@@ -632,19 +729,19 @@ const StrategiesManager = {
     document.body.appendChild(overlay);
 
     const close = () => overlay.remove();
-    box.querySelector('#_st_close').onclick = close;
-    box.querySelector('#_st_cancel').onclick = close;
-    box.querySelector('#_st_save').onclick = async () => {
+    box.querySelector("#_st_close").onclick = close;
+    box.querySelector("#_st_cancel").onclick = close;
+    box.querySelector("#_st_save").onclick = async () => {
       const ok = (await onSubmit?.()) !== false;
       if (ok) close();
     };
   },
 
-  _promptLarge: (title, defaultText = '') => {
+  _promptLarge: (title, defaultText = "") => {
     return new Promise((resolve) => {
       const content = `<textarea id="_st_text" class="form-control" rows="12">${defaultText}</textarea>`;
       StrategiesManager._showModal(title, content, async () => {
-        const val = document.getElementById('_st_text').value;
+        const val = document.getElementById("_st_text").value;
         resolve(val);
         return true;
       });

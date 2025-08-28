@@ -34,13 +34,13 @@ const App = {
     });
 
     // 表单提交事件（仅绑定当前存在的表单）
-    if (document.getElementById('strategy-form')) {
+    if (document.getElementById("strategy-form")) {
       $("#strategy-form").submit(StrategiesManager.handleSubmit);
     }
-    if (document.getElementById('execute-strategy-form')) {
+    if (document.getElementById("execute-strategy-form")) {
       $("#execute-strategy-form").submit(StrategiesManager.handleExecute);
     }
-    if (document.getElementById('backtest-form')) {
+    if (document.getElementById("backtest-form")) {
       $("#backtest-form").submit(BacktestManager.handleSubmit);
     }
 

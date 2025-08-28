@@ -18,7 +18,7 @@ class StrategyFactory:
 
     # 注册的策略类
     _strategies: Dict[str, Type[BaseStrategy]] = {
-    "schloss": SchlossStrategy,
+        "schloss": SchlossStrategy,
     }
 
     @classmethod

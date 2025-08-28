@@ -195,12 +195,20 @@ const StrategyAPI = {
 
   // 启用/禁用策略
   enable: (strategyName, enabled = true) => {
-    return ApiService.post(`/strategies/${strategyName}/enable`, {}, { enabled });
+    return ApiService.post(
+      `/strategies/${strategyName}/enable`,
+      {},
+      { enabled }
+    );
   },
 
   // 克隆策略
   clone: (strategyName, newName) => {
-    return ApiService.post(`/strategies/${strategyName}/clone`, {}, { new_name: newName });
+    return ApiService.post(
+      `/strategies/${strategyName}/clone`,
+      {},
+      { new_name: newName }
+    );
   },
 
   // 导出策略配置
