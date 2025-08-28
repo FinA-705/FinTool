@@ -1,6 +1,7 @@
 """
 任务相关的枚举和数据类
 """
+
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Dict, Optional

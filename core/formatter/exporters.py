@@ -1,6 +1,7 @@
 """
 数据导出器
 """
+
 import json
 import pandas as pd
 from pathlib import Path
@@ -38,9 +39,7 @@ class DataExporter:
                 json.dump(result_dict, f, ensure_ascii=False)
         return str(file_path)
 
-    def to_excel(
-        self, result: ScreeningResult, filename: Optional[str] = None
-    ) -> str:
+    def to_excel(self, result: ScreeningResult, filename: Optional[str] = None) -> str:
         """导出为Excel格式"""
         if filename is None:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -83,9 +82,7 @@ class DataExporter:
             config_df.to_excel(writer, sheet_name="策略配置", index=False)
         return str(file_path)
 
-    def to_csv(
-        self, result: ScreeningResult, filename: Optional[str] = None
-    ) -> str:
+    def to_csv(self, result: ScreeningResult, filename: Optional[str] = None) -> str:
         """导出为CSV格式"""
         if filename is None:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

@@ -1,6 +1,7 @@
 """
 JSON Lines格式处理工具
 """
+
 import json
 from typing import Dict, List, Union, Any
 from pathlib import Path

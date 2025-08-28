@@ -5,7 +5,11 @@ API请求工具
 支持常用的API调用模式和错误处理
 """
 
-from .api import *
+from .api.decorators import api_retry
+from .api.helper import APIHelper
+from .api.models import APIResponse, RequestMethod, RetryConfig
+from .api.rest_client import RESTClient
+from .api.utils import build_query_string, download_file, parse_url, quick_request
 
 # 使用示例
 if __name__ == "__main__":

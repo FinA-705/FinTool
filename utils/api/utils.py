@@ -1,6 +1,7 @@
 """
 便捷函数和URL处理工具
 """
+
 import urllib.parse
 from typing import Any, Dict
 from .helper import APIHelper

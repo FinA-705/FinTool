@@ -1,6 +1,7 @@
 """
 API请求相关的装饰器
 """
+
 import time
 from .models import APIResponse
 

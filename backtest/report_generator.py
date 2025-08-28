@@ -1,6 +1,7 @@
 """
 绩效报告生成器模块
 """
+
 from dataclasses import asdict
 
 from backtest.performance_metrics import PerformanceMetrics
@@ -78,4 +79,5 @@ class ReportGenerator:
     def to_json(self, metrics: PerformanceMetrics) -> str:
         """将绩效指标转换为JSON字符串"""
         import json
+
         return json.dumps(self.to_dict(metrics), indent=4)

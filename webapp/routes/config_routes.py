@@ -35,10 +35,9 @@ async def get_system_stats():
         # 获取策略数量
         try:
             from strategies.strategy_factory import StrategyFactory
-            from strategies.config_manager import ConfigManager
+            from strategies.config_manager import strategy_config_manager
 
-            config_manager = ConfigManager()
-            strategy_names = config_manager.list_available_strategies()
+            strategy_names = strategy_config_manager.list_available_strategies()
             stats["strategies"] = len(strategy_names)
         except Exception as e:
             logger.warning(f"获取策略数量失败: {e}")

@@ -1,6 +1,7 @@
 """
 API请求相关的枚举和数据类
 """
+
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional

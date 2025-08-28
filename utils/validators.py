@@ -4,7 +4,19 @@
 提供通用的数据验证功能
 支持股票代码、日期范围、数值数据等验证
 """
-from .validator import *
+
+from .validator.core import DataValidator, ValidationError
+from .validator.helpers import (
+    ensure_numeric_range,
+    ensure_valid_date_range,
+    ensure_valid_stock_code,
+)
+from .validator.models import ValidationRule
+from .validator.presets import (
+    validate_date_range,
+    validate_numeric_data,
+    validate_stock_code,
+)
 
 # 使用示例
 if __name__ == "__main__":

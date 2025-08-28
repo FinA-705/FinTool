@@ -1,6 +1,7 @@
 """
 便捷的验证函数，用于快速检查和抛出异常
 """
+
 from typing import Any, Optional, Union, Tuple
 from datetime import datetime
 import pandas as pd

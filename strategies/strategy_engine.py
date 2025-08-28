@@ -108,9 +108,7 @@ class EnhancedStrategyEngine:
             logger.info(f"执行策略: {strategy_name} (模式: {mode.value})")
 
             # 准备变量
-            variables = self.executor.prepare_variables(
-                data, strategy_config.constants
-            )
+            variables = self.executor.prepare_variables(data, strategy_config.constants)
 
             # 执行过滤
             filtered_data = data.copy()

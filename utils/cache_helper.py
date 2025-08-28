@@ -6,16 +6,14 @@
 """
 
 import time
-from typing import Any, Dict, List, Optional, Callable, TypeVar
 from pathlib import Path
-from functools import wraps
 
-from utils.cache.base import CacheBackend
-from utils.cache.entry import CachePolicy, CacheEntry
-from utils.cache.memory_cache import MemoryCache
-from utils.cache.file_cache import FileCache
-from utils.cache.manager import CacheManager, get_default_cache, set_default_cache
-from utils.cache.decorators import cached, memoize
+from .cache.base import CacheBackend
+from .cache.decorators import cached, memoize
+from .cache.entry import CacheEntry, CachePolicy
+from .cache.file_cache import FileCache
+from .cache.manager import CacheManager, get_default_cache, set_default_cache
+from .cache.memory_cache import MemoryCache
 
 
 # 使用示例

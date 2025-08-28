@@ -19,8 +19,8 @@ const Utils = {
     }).format(num);
   },
 
-  // 格式化百分比
-  formatPercent: (num, decimals = 2) => {
+  // 格式化百分比（比率 -> 百分数）例如 0.0245 -> 2.45%
+  formatPercentRatio: (num, decimals = 2) => {
     if (
       num === null ||
       num === undefined ||
@@ -30,6 +30,24 @@ const Utils = {
       return "--";
     }
     return (num * 100).toFixed(decimals) + "%";
+  },
+
+  // 格式化百分比（已是百分数值）例如 -2.4272 -> -2.43%
+  formatPercentValue: (num, decimals = 2) => {
+    if (
+      num === null ||
+      num === undefined ||
+      typeof num !== "number" ||
+      isNaN(num)
+    ) {
+      return "--";
+    }
+    return num.toFixed(decimals) + "%";
+  },
+
+  // 兼容旧用法：默认按“比率->百分数”处理
+  formatPercent: (num, decimals = 2) => {
+    return Utils.formatPercentRatio(num, decimals);
   },
 
   // 格式化金额
@@ -45,6 +63,29 @@ const Utils = {
     if (num >= 1e8) return (num / 1e8).toFixed(2) + "亿";
     if (num >= 1e4) return (num / 1e4).toFixed(2) + "万";
     return num.toFixed(2);
+  },
+
+  // 格式化市值（输入单位：万元，输出：优先用“亿/万亿”）
+  formatMarketCapFromWan: (num, decimals = 2) => {
+    if (
+      num === null ||
+      num === undefined ||
+      typeof num !== "number" ||
+      isNaN(num)
+    ) {
+      return "--";
+    }
+    // 1 亿元 = 10000 万元；1 万亿元 = 10000 亿元
+    const yi = num / 10000; // 亿元
+    if (yi >= 10000) {
+      const wanyi = yi / 10000; // 万亿元
+      return wanyi.toFixed(decimals) + "万亿";
+    }
+    if (yi >= 1) {
+      return yi.toFixed(decimals) + "亿";
+    }
+    // 小于1亿时，直接显示“万”
+    return num.toFixed(0) + "万";
   },
 
   // 格式化市盈率等指标，精确判断亏损
@@ -71,17 +112,30 @@ const Utils = {
   // 智能格式化PE，结合EPS判断
   formatPEWithEPS: (pe, eps, decimals = 2) => {
     // 如果EPS为负数，明确是亏损
-    if (eps !== null && eps !== undefined && typeof eps === "number" && eps < 0) {
+    if (
+      eps !== null &&
+      eps !== undefined &&
+      typeof eps === "number" &&
+      eps < 0
+    ) {
       return '<span class="text-danger">亏损</span>';
     }
 
     // 如果EPS为正但PE为null，可能是数据缺失
-    if ((eps === null || eps === undefined) && (pe === null || pe === undefined)) {
+    if (
+      (eps === null || eps === undefined) &&
+      (pe === null || pe === undefined)
+    ) {
       return '<span class="text-muted">--</span>';
     }
 
     // 如果有有效的PE值
-    if (pe !== null && pe !== undefined && typeof pe === "number" && !isNaN(pe)) {
+    if (
+      pe !== null &&
+      pe !== undefined &&
+      typeof pe === "number" &&
+      !isNaN(pe)
+    ) {
       return new Intl.NumberFormat("zh-CN", {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals,
@@ -92,7 +146,7 @@ const Utils = {
   },
 
   // 格式化财务指标，null值显示为--
-  formatFinancialRatio: (num, decimals = 2, unit = '') => {
+  formatFinancialRatio: (num, decimals = 2, unit = "") => {
     if (
       num === null ||
       num === undefined ||

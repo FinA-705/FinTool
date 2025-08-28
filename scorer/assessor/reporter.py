@@ -1,6 +1,7 @@
 """
 风险等级评估和报告生成
 """
+
 from typing import List, Tuple
 from .models import RiskMetrics, RiskLevel
 
@@ -66,7 +67,9 @@ class ReportGenerator:
         """生成投资建议"""
         recommendations = []
         if risk_level == RiskLevel.VERY_HIGH:
-            recommendations.extend(["风险极高，建议回避或严格控制仓位", "如持有需设置严格止损"])
+            recommendations.extend(
+                ["风险极高，建议回避或严格控制仓位", "如持有需设置严格止损"]
+            )
         elif risk_level == RiskLevel.HIGH:
             recommendations.extend(["风险较高，建议小仓位参与", "密切关注市场变化"])
         elif risk_level == RiskLevel.MEDIUM:

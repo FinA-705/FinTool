@@ -1,6 +1,7 @@
 """
 验证器相关的数据模型和枚举
 """
+
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Optional, Callable, Dict, List
@@ -24,6 +25,7 @@ class ValidationError(Exception):
 
 class ValidationType(Enum):
     """验证类型枚举"""
+
     REQUIRED = "required"
     TYPE = "type"
     RANGE = "range"
@@ -34,6 +36,7 @@ class ValidationType(Enum):
 @dataclass
 class ValidationRule:
     """验证规则"""
+
     type: ValidationType
     message: str
     validator: Optional[Callable] = None

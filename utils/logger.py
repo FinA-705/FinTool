@@ -215,7 +215,7 @@ def get_logger(name: str = "FinancialAgent") -> Logger:
         # 默认配置
         if not _global_logger._configured:
             _global_logger.configure(
-                log_level=LogLevel.INFO,
+                log_level=LogLevel.DEBUG,
                 log_file="logs/financial_agent.log",
                 enable_console=True,
                 format_type="detailed",

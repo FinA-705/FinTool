@@ -1,6 +1,7 @@
 """
 核心输出格式化器
 """
+
 from typing import Any, Dict, List, Optional, Union
 from pathlib import Path
 from datetime import datetime

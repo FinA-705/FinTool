@@ -1,6 +1,7 @@
 """
 股票数据相关API路由 - 详细信息
 """
+
 from fastapi import APIRouter, Depends, HTTPException
 from webapp.models import SuccessResponse
 from utils.logger import get_logger
@@ -13,6 +14,7 @@ router = APIRouter()
 async def get_api_service():
     """获取API服务实例的依赖注入"""
     from webapp.app import api_service
+
     return api_service
 
 
@@ -36,6 +38,7 @@ async def get_stock_info(stock_code: str, api_service=Depends(get_api_service)):
             return SuccessResponse(message="股票信息获取成功（缓存）", data=cached)
 
         from core.database import stock_db
+
         records = stock_db.get_stock_basic_data(symbols=[pure_code], cache_hours=24 * 7)
         info = records[0] if records else {}
 
@@ -102,14 +105,22 @@ async def _fetch_and_cache_metrics(info, pure_code, api_service):
                     frow = fina_df.sort_values("end_date", ascending=False).iloc[0]
                     roe = _safe_float(frow.get("roe"))
                     roa = _safe_float(frow.get("roa"))
-                    debt_ratio = _safe_float(frow.get("debt_to_assets")) or _safe_float(frow.get("assets_to_eqt"))
-                    eps = _safe_float(frow.get("eps_basic")) or _safe_float(frow.get("eps"))
+                    debt_ratio = _safe_float(frow.get("debt_to_assets")) or _safe_float(
+                        frow.get("assets_to_eqt")
+                    )
+                    eps = _safe_float(frow.get("eps_basic")) or _safe_float(
+                        frow.get("eps")
+                    )
             except Exception as fe:
                 logger.warning(f"获取财务指标失败: {ts_code} {fe}")
 
         metrics = {
-            "pe": pe, "pb": pb, "roe": roe, "roa": roa,
-            "debt_ratio": debt_ratio, "eps": eps
+            "pe": pe,
+            "pb": pb,
+            "roe": roe,
+            "roa": roa,
+            "debt_ratio": debt_ratio,
+            "eps": eps,
         }
         api_service.set_cached_data(metrics_cache_key, metrics, ttl=600)
         return metrics

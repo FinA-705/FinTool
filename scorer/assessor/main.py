@@ -1,6 +1,7 @@
 """
 风险评估主类
 """
+
 import json
 from pathlib import Path
 from typing import Dict, Optional, Union
@@ -42,7 +43,9 @@ class RiskAssessor:
         if len(returns) < self.config.min_periods:
             raise ValueError(f"数据不足，至少需要{self.config.min_periods}个交易日")
 
-        market_returns = market_data.pct_change().dropna() if market_data is not None else None
+        market_returns = (
+            market_data.pct_change().dropna() if market_data is not None else None
+        )
         metrics = self.calculator.calculate(returns, market_returns)
         risk_level, risk_score = self.reporter.assess_risk_level(metrics)
         warnings = self.reporter.generate_warnings(metrics)

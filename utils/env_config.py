@@ -115,6 +115,11 @@ class EnvConfig:
         self._config_cache["request_timeout"] = self.get_int("REQUEST_TIMEOUT", 30)
         self._config_cache["batch_size"] = self.get_int("BATCH_SIZE", 100)
 
+        # 股票筛选配置
+        self._config_cache["selective_stocks_mode"] = self.get_bool(
+            "SELECTIVE_STOCKS_MODE", False
+        )
+
     def get_str(self, key: str, default: Optional[str] = None) -> Optional[str]:
         """
         获取字符串类型的环境变量
@@ -349,6 +354,11 @@ class EnvConfig:
     def batch_size(self) -> int:
         """批处理大小"""
         return self._config_cache["batch_size"]
+
+    @property
+    def selective_stocks_mode(self) -> bool:
+        """特选股模式（仅加载沪深300和中证500）"""
+        return self._config_cache["selective_stocks_mode"]
 
     def get_data_source_config(self, source: str) -> Dict[str, Any]:
         """

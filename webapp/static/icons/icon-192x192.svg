@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="96" cy="96" r="96" fill="#6750A4"/>
+
+  <!-- Chart Icon -->
+  <path d="M48 144L72 120L96 96L120 72L144 48" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- Data Points -->
+  <circle cx="48" cy="144" r="6" fill="white"/>
+  <circle cx="72" cy="120" r="6" fill="white"/>
+  <circle cx="96" cy="96" r="6" fill="white"/>
+  <circle cx="120" cy="72" r="6" fill="white"/>
+  <circle cx="144" cy="48" r="6" fill="white"/>
+
+  <!-- Dollar Sign -->
+  <text x="96" y="168" font-family="Roboto, sans-serif" font-size="24" font-weight="bold" text-anchor="middle" fill="white">¥</text>
+</svg>

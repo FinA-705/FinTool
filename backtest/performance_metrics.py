@@ -205,9 +205,7 @@ if __name__ == "__main__":
     )
 
     # 创建模拟交易数据
-    trades = [
-        {"action": "buy", "pnl": np.random.normal(1000, 5000)} for i in range(50)
-    ]
+    trades = [{"action": "buy", "pnl": np.random.normal(1000, 5000)} for i in range(50)]
 
     # 创建绩效分析器
     analyzer = PerformanceAnalyzer(risk_free_rate=0.03)

@@ -1,6 +1,7 @@
 """
 绩效指标计算器模块
 """
+
 from typing import Any, Dict, List, Optional
 import pandas as pd
 import numpy as np
@@ -143,9 +144,7 @@ class MetricsCalculator:
                 current_duration = 0
         return max_duration
 
-    def calculate_sharpe_ratio(
-        self, annual_return: float, volatility: float
-    ) -> float:
+    def calculate_sharpe_ratio(self, annual_return: float, volatility: float) -> float:
         """计算夏普比率"""
         if volatility == 0:
             return 0.0

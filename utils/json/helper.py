@@ -1,6 +1,7 @@
 """
 JSON处理助手核心类
 """
+
 import json
 import gzip
 from typing import Any, Dict, List, Optional, Union
@@ -201,6 +202,7 @@ class JSONHelper:
             else:
                 result[key] = value
         return result
+
 
 # 全局JSON助手实例
 _global_helper = JSONHelper()

@@ -1,6 +1,7 @@
 """
 股票数据相关API路由 - 策略与市场
 """
+
 import asyncio
 from fastapi import APIRouter, Depends, HTTPException
 from webapp.models import (
@@ -18,6 +19,7 @@ router = APIRouter()
 async def get_api_service():
     """获取API服务实例的依赖注入"""
     from webapp.app import api_service
+
     return api_service
 
 
@@ -66,16 +68,28 @@ async def get_supported_markets():
     """获取支持的市场列表"""
     markets = [
         {
-            "code": "a_stock", "name": "A股市场", "description": "中国沪深交易所",
-            "timezone": "Asia/Shanghai", "trading_hours": "09:30-15:00", "currency": "CNY",
+            "code": "a_stock",
+            "name": "A股市场",
+            "description": "中国沪深交易所",
+            "timezone": "Asia/Shanghai",
+            "trading_hours": "09:30-15:00",
+            "currency": "CNY",
         },
         {
-            "code": "us_stock", "name": "美股市场", "description": "美国纳斯达克、纽交所",
-            "timezone": "America/New_York", "trading_hours": "09:30-16:00", "currency": "USD",
+            "code": "us_stock",
+            "name": "美股市场",
+            "description": "美国纳斯达克、纽交所",
+            "timezone": "America/New_York",
+            "trading_hours": "09:30-16:00",
+            "currency": "USD",
         },
         {
-            "code": "hk_stock", "name": "港股市场", "description": "香港交易所",
-            "timezone": "Asia/Hong_Kong", "trading_hours": "09:30-16:00", "currency": "HKD",
+            "code": "hk_stock",
+            "name": "港股市场",
+            "description": "香港交易所",
+            "timezone": "Asia/Hong_Kong",
+            "trading_hours": "09:30-16:00",
+            "currency": "HKD",
         },
     ]
     return SuccessResponse(message="市场信息获取成功", data=markets)

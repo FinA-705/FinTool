@@ -25,17 +25,28 @@ const StocksManager = {
         {
           data: "price",
           title: "价格",
-          render: function (data) {
-            return Utils.formatNumber(data);
+          render: function (data, type, row) {
+            // 某些后端返回 current_price 或在 financial_metrics 中存在价格信息
+            const fm = row.financial_metrics || {};
+            const price =
+              data !== null && data !== undefined && data !== ""
+                ? data
+                : fm.current_price || row.current_price || row.price;
+            return Utils.formatNumber(typeof price === "number" ? price : null);
           },
         },
         {
           data: "change",
           title: "涨跌幅",
-          render: function (data) {
-            const colorClass = Utils.getColor(data);
-            return `<span class="${colorClass}">${Utils.formatPercent(
-              data
+          render: function (data, type, row) {
+            const fm = row.financial_metrics || {};
+            const val =
+              data !== null && data !== undefined && data !== ""
+                ? data
+                : fm.change_pct || row.change_pct || row.change;
+            const colorClass = Utils.getColor(val);
+            return `<span class="${colorClass}">${Utils.formatPercentValue(
+              typeof val === "number" ? val : null
             )}</span>`;
           },
         },
@@ -49,8 +60,14 @@ const StocksManager = {
         {
           data: "market_cap",
           title: "市值",
-          render: function (data) {
-            return Utils.formatCurrency(data);
+          render: function (data, type, row) {
+            const fm = row.financial_metrics || {};
+            const mc =
+              (typeof data === "number" && !isNaN(data) ? data : null) ??
+              (typeof fm.market_cap === "number" && !isNaN(fm.market_cap)
+                ? fm.market_cap
+                : null);
+            return Utils.formatMarketCapFromWan(mc);
           },
         },
         {
@@ -58,14 +75,21 @@ const StocksManager = {
           title: "PE",
           render: function (data, type, row) {
             // 使用EPS来智能判断PE显示
-            return Utils.formatPEWithEPS(data, row.eps, 1);
+            const epsVal =
+              row.eps ||
+              (row.financial_metrics && row.financial_metrics.eps) ||
+              null;
+            return Utils.formatPEWithEPS(data, epsVal, 1);
           },
         },
         {
           data: "pb",
           title: "PB",
-          render: function (data) {
-            return Utils.formatNumber(data, 1);
+          render: function (data, type, row) {
+            const fm = row.financial_metrics || {};
+            const pb =
+              data !== undefined && data !== null ? data : fm.pb || row.pb;
+            return Utils.formatNumber(typeof pb === "number" ? pb : null, 1);
           },
         },
         {
@@ -89,6 +113,37 @@ const StocksManager = {
         url: "//cdn.datatables.net/plug-ins/1.10.25/i18n/Chinese.json",
       },
     });
+
+    // 动态注入工具栏按钮（异常列表 / 重抓异常）
+    const toolbarId = "stocks-toolbar-actions";
+    if (!document.getElementById(toolbarId)) {
+      const toolbar = document.createElement("div");
+      toolbar.id = toolbarId;
+      toolbar.className = "mb-2 d-flex gap-2";
+      toolbar.innerHTML = `
+        <button id="btn-show-bad-codes" class="btn btn-outline-warning btn-sm">
+          <i class="fas fa-exclamation-triangle"></i> 异常列表
+        </button>
+        <button id="btn-refetch-bad-codes" class="btn btn-outline-danger btn-sm">
+          <i class="fas fa-sync"></i> 重抓异常
+        </button>
+      `;
+      const tableEl = document.getElementById("stocks-table");
+      if (tableEl && tableEl.parentElement) {
+        tableEl.parentElement.insertBefore(toolbar, tableEl);
+      } else {
+        document.body.insertBefore(toolbar, document.body.firstChild);
+      }
+
+      document
+        .getElementById("btn-show-bad-codes")
+        .addEventListener("click", () => StocksManager.showBadCodes());
+      document
+        .getElementById("btn-refetch-bad-codes")
+        .addEventListener("click", () =>
+          StocksManager.refetchBadCodes({ all: true })
+        );
+    }
   },
 
   // 刷新股票数据
@@ -123,6 +178,67 @@ const StocksManager = {
     }
   },
 
+  // 展示异常股票代码列表
+  showBadCodes: async () => {
+    try {
+      const resp = await StockAPI.getBadCodes();
+      if (!resp || resp.success === false) {
+        Utils.showToast((resp && resp.message) || "获取异常列表失败", "error");
+        return;
+      }
+
+      const codes = (resp.data && resp.data.codes) || resp.data || [];
+      if (!Array.isArray(codes) || codes.length === 0) {
+        Utils.showToast("当前没有异常代码", "info");
+        return;
+      }
+
+      // 简单弹窗展示
+      const content = `共 ${codes.length} 只异常：\n` + codes.join(", ");
+      if (window.bootstrap && document.getElementById("genericModal")) {
+        // 若项目有通用模态框，可在此填充
+        const modalBody = document.querySelector("#genericModal .modal-body");
+        if (modalBody) modalBody.textContent = content;
+        const modal = new bootstrap.Modal(
+          document.getElementById("genericModal")
+        );
+        modal.show();
+      } else {
+        alert(content);
+      }
+    } catch (e) {
+      console.error("获取异常代码失败", e);
+      Utils.showToast("获取异常列表失败", "error");
+    }
+  },
+
+  // 触发重抓异常股票的财务指标
+  refetchBadCodes: async ({ all = true, codes = [] } = {}) => {
+    try {
+      Utils.showToast("正在触发重抓，请稍候...", "info");
+      const payload = Array.isArray(codes) && codes.length ? { codes } : {};
+      const params = { all: all ? true : undefined, force: true };
+      const resp = await StockAPI.refetchMetrics(payload, params);
+
+      if (resp && resp.success) {
+        const data = resp.data || {};
+        const processed = data.total_processed ?? data.processed ?? 0;
+        const cached = data.cached_count ?? data.saved ?? 0;
+        Utils.showToast(
+          `已触发重抓：处理 ${processed}，保存 ${cached}`,
+          "success"
+        );
+        // 重抓后可选刷新
+        StocksManager.refresh();
+      } else {
+        Utils.showToast((resp && resp.message) || "重抓失败", "error");
+      }
+    } catch (e) {
+      console.error("重抓异常失败", e);
+      Utils.showToast("重抓失败", "error");
+    }
+  },
+
   // 搜索股票
   search: () => {
     StocksManager.refresh();
@@ -152,19 +268,24 @@ const StocksManager = {
     ];
     const csvContent = [
       headers.join(","),
-      ...data.map((row) =>
-        [
-          row.code,
-          row.name,
-          row.market,
-          row.price,
-          row.change,
-          row.volume,
-          row.market_cap,
-          row.pe,
-          row.pb,
-        ].join(",")
-      ),
+      ...data.map((row) => {
+        const fm = row.financial_metrics || {};
+        const price = row.price ?? fm.current_price ?? row.current_price ?? "";
+        const change = row.change ?? fm.change_pct ?? row.change_pct ?? "";
+        const pe = row.pe ?? fm.pe ?? "";
+        const pb = row.pb ?? fm.pb ?? "";
+        return [
+          row.code || "",
+          row.name || "",
+          row.market || "",
+          price,
+          change,
+          row.volume ?? fm.volume ?? "",
+          row.market_cap ?? fm.market_cap ?? "",
+          pe,
+          pb,
+        ].join(",");
+      }),
     ].join("\n");
 
     // 下载文件
@@ -200,9 +321,26 @@ const StocksManager = {
       const d = response.data || {};
       const safe = (v, fallback = "-") =>
         v === null || v === undefined || v === "" ? fallback : v;
+
+      // 支持多种返回结构：顶级字段或 financial_metrics 嵌套
+      const fm = d.financial_metrics || d || {};
+
+      const epsVal = fm.eps || d.eps || null;
+      const peVal = fm.pe || d.pe || null;
+      const pbVal = fm.pb || d.pb || null;
+      const roeVal = fm.roe || d.roe || null;
+      const roaVal = fm.roa || d.roa || null;
+      const debtVal = fm.debt_ratio || d.debt_ratio || null;
+      const priceVal = fm.current_price || d.current_price || d.price || null;
+      const changeVal = fm.change_pct || d.change_pct || d.change || null;
+
       const safePE = (pe, eps) => {
-        // 使用EPS来智能判断PE显示
-        if (eps !== null && eps !== undefined && typeof eps === "number" && eps < 0) {
+        if (
+          eps !== null &&
+          eps !== undefined &&
+          typeof eps === "number" &&
+          eps < 0
+        ) {
           return '<span class="text-danger">亏损</span>';
         }
         if (pe === null || pe === undefined || pe === "") {
@@ -210,10 +348,6 @@ const StocksManager = {
         }
         return pe;
       };
-      const pct = (v) =>
-        v === null || v === undefined ? "-" : (v * 100).toFixed(2) + "%";
-      const fm = d.financial_metrics || {};
-      const ti = d.technical_indicators || {};
 
       $("#stock-detail-content").html(`
         <div class="row">
@@ -233,12 +367,14 @@ const StocksManager = {
           <div class="col-md-6">
             <h6>财务指标</h6>
             <table class="table table-sm">
-              <tr><td>市盈率</td><td>${safePE(fm.pe, fm.eps)}</td></tr>
-              <tr><td>市净率</td><td>${safe(fm.pb)}</td></tr>
-              <tr><td>ROE</td><td>${safe(fm.roe)}</td></tr>
-              <tr><td>ROA</td><td>${safe(fm.roa)}</td></tr>
-              <tr><td>负债率</td><td>${safe(fm.debt_ratio)}</td></tr>
-              <tr><td>每股收益(EPS)</td><td>${safe(fm.eps)}</td></tr>
+              <tr><td>市盈率</td><td>${safePE(peVal, epsVal)}</td></tr>
+              <tr><td>市净率</td><td>${safe(pbVal)}</td></tr>
+              <tr><td>ROE</td><td>${safe(roeVal)}</td></tr>
+              <tr><td>ROA</td><td>${safe(roaVal)}</td></tr>
+              <tr><td>负债率</td><td>${safe(debtVal)}</td></tr>
+              <tr><td>每股收益(EPS)</td><td>${safe(epsVal)}</td></tr>
+              <tr><td>最新价格</td><td>${safe(priceVal)}</td></tr>
+              <tr><td>涨跌幅</td><td>${safe(changeVal)}</td></tr>
             </table>
           </div>
         </div>
@@ -269,7 +405,9 @@ const StocksManager = {
       if (response.success) {
         const data = response.data || {};
         Utils.showToast(
-          `缓存成功：处理了 ${data.total_processed || 0} 只股票，保存了 ${data.cached_count || 0} 条财务指标`,
+          `缓存成功：处理了 ${data.total_processed || 0} 只股票，保存了 ${
+            data.cached_count || 0
+          } 条财务指标`,
           "success"
         );
       } else {
@@ -364,7 +502,10 @@ const StocksManager = {
       if (response.success) {
         const data = response.data || {};
         const status = data.token_valid ? "健康" : "异常";
-        Utils.showToast(`Tushare状态: ${status}`, data.token_valid ? "success" : "warning");
+        Utils.showToast(
+          `Tushare状态: ${status}`,
+          data.token_valid ? "success" : "warning"
+        );
         return data;
       } else {
         Utils.showToast(response.message || "健康检查失败", "error");
@@ -386,10 +527,7 @@ const StocksManager = {
 
       if (response.success) {
         const data = response.data || [];
-        Utils.showToast(
-          `策略执行成功，找到 ${data.length} 只股票`,
-          "success"
-        );
+        Utils.showToast(`策略执行成功，找到 ${data.length} 只股票`, "success");
         return data;
       } else {
         Utils.showToast(response.message || "策略执行失败", "error");

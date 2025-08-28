@@ -1,6 +1,7 @@
 """
 核心数据验证器类
 """
+
 import re
 from typing import Any, List, Optional, Dict, Callable
 from .models import ValidationRule, ValidationType, ValidationError
@@ -28,7 +29,9 @@ class DataValidator:
     ) -> "DataValidator":
         if message is None:
             message = f"字段类型必须是 {expected_type.__name__}"
-        rule = ValidationRule(ValidationType.TYPE, message, lambda v: isinstance(v, expected_type))
+        rule = ValidationRule(
+            ValidationType.TYPE, message, lambda v: isinstance(v, expected_type)
+        )
         return self.add_rule(field, rule)
 
     def range_check(
@@ -49,11 +52,14 @@ class DataValidator:
         def validator(value):
             try:
                 num_val = float(value)
-                if min_val is not None and num_val < min_val: return False
-                if max_val is not None and num_val > max_val: return False
+                if min_val is not None and num_val < min_val:
+                    return False
+                if max_val is not None and num_val > max_val:
+                    return False
                 return True
             except (ValueError, TypeError):
                 return False
+
         rule = ValidationRule(ValidationType.RANGE, message, validator)
         return self.add_rule(field, rule)
 
@@ -62,7 +68,9 @@ class DataValidator:
     ) -> "DataValidator":
         if message is None:
             message = f"字段格式不符合要求: {pattern}"
-        rule = ValidationRule(ValidationType.FORMAT, message, lambda v: bool(re.match(pattern, str(v))))
+        rule = ValidationRule(
+            ValidationType.FORMAT, message, lambda v: bool(re.match(pattern, str(v)))
+        )
         return self.add_rule(field, rule)
 
     def custom_check(

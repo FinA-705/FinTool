@@ -1,6 +1,7 @@
 """
 核心调度器实现
 """
+
 import asyncio
 import time
 import threading
@@ -24,9 +25,7 @@ class CoreScheduler:
         self, max_workers: int = 4, storage_path: Optional[Union[str, Path]] = None
     ):
         self.max_workers = max_workers
-        self.storage = (
-            TaskStorage(Path(storage_path)) if storage_path else None
-        )
+        self.storage = TaskStorage(Path(storage_path)) if storage_path else None
         self.tasks: Dict[str, TaskInfo] = {}
         self.task_results: Dict[str, TaskResult] = {}
         self.task_queue = TaskQueue()
@@ -229,9 +228,7 @@ class CoreScheduler:
 
     def _cleanup_completed_tasks(self):
         completed_tasks = [
-            task_id
-            for task_id, future in self.running_tasks.items()
-            if future.done()
+            task_id for task_id, future in self.running_tasks.items() if future.done()
         ]
         for task_id in completed_tasks:
             del self.running_tasks[task_id]

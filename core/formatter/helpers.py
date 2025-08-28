@@ -1,6 +1,7 @@
 """
 格式化器的辅助函数
 """
+
 from typing import Any, Dict, List, Optional
 from .models import ScoreDetails, AIAnalysis, StockRating, StockResult
 
@@ -82,6 +83,7 @@ def generate_summary(stocks: List[StockResult]) -> Dict[str, Any]:
 def clean_dict(data: Any) -> Any:
     """递归清理字典数据，移除None值并将Enum转为值"""
     from enum import Enum
+
     if isinstance(data, dict):
         return {k: clean_dict(v) for k, v in data.items() if v is not None}
     elif isinstance(data, list):

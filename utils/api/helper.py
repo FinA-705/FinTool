@@ -1,6 +1,7 @@
 """
 API请求助手核心类
 """
+
 import requests
 import time
 from typing import Any, Dict, Optional, Union, Callable, List

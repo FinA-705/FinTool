@@ -1,0 +1,26 @@
+# TuShare异步版本依赖包
+# TuShare Async Version Dependencies
+
+# 核心异步HTTP库
+aiohttp>=3.8.0
+
+# 异步支持
+asyncio
+
+# 数据处理（原TuShare已包含）
+pandas>=1.0.0
+numpy>=1.15.0
+
+# 网页解析（部分模块需要）
+beautifulsoup4>=4.8.0
+lxml>=4.5.0
+
+# HTTP请求（同步版本兼容）
+requests>=2.25.0
+
+# 其他依赖（根据原TuShare）
+six>=1.10.0
+
+# 可选依赖（用于特定功能）
+# sseclient-py  # GPT流式接口需要
+# nest-asyncio  # Jupyter环境需要

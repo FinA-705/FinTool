@@ -242,7 +242,13 @@ class SchlossStrategy(BaseStrategy):
         quality_scores = pd.Series(0.0, index=data.index)
 
         # ROE得分 (权重50%)
-        roe_scores = self._score_by_ranges(data["roe"], self.roe_ranges)
+        # 兼容两种单位：若值普遍大于1，视为百分比，换算为小数参与评分
+        roe_series = pd.to_numeric(data["roe"], errors="coerce")
+        if pd.notna(roe_series).any() and (roe_series.max(skipna=True) or 0) > 1.0:
+            roe_for_scoring = roe_series / 100.0
+        else:
+            roe_for_scoring = roe_series
+        roe_scores = self._score_by_ranges(roe_for_scoring, self.roe_ranges)
         quality_scores += roe_scores * 0.5
 
         # ROA得分 (权重30%)，如果有的话
@@ -360,7 +366,14 @@ class SchlossStrategy(BaseStrategy):
 
         # 质量方面
         if criteria_scores["quality_score"] > 70:
-            reasons.append(f"盈利能力强 - ROE: {row.get('roe', 0)*100:.1f}%")
+            # 根据数值大小判断是否为百分比输入
+            roe_val = row.get("roe", 0) or 0
+            try:
+                roe_val = float(roe_val)
+            except Exception:
+                roe_val = 0.0
+            roe_pct = roe_val if roe_val > 1.0 else roe_val * 100.0
+            reasons.append(f"盈利能力强 - ROE: {roe_pct:.1f}%")
 
         # 安全方面
         if criteria_scores["safety_score"] > 70:
@@ -396,8 +409,15 @@ class SchlossStrategy(BaseStrategy):
             warnings.append(f"市净率偏高 (P/B: {row.get('pb_ratio'):.1f})")
 
         # 财务警告
-        if row.get("debt_to_equity", 0) > 0.5:
-            warnings.append(f"负债水平较高 ({row.get('debt_to_equity'):.1f})")
+        # 负债率单位自适应：若值大于1，按百分比对比50%；否则按0.5（50%）
+        debt_val = row.get("debt_to_equity", 0) or 0
+        try:
+            debt_val = float(debt_val)
+        except Exception:
+            debt_val = 0.0
+        high_debt = (debt_val > 50.0) if debt_val > 1.0 else (debt_val > 0.5)
+        if high_debt:
+            warnings.append(f"负债水平较高 ({debt_val:.1f})")
 
         if row.get("current_ratio", 0) < 1.5:
             warnings.append(f"流动性不足 (流动比率: {row.get('current_ratio'):.1f})")

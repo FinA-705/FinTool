@@ -5,5 +5,6 @@
 from .stock_routes import router as stock_router
 from .config_routes import router as config_router
 from .backtest_routes import router as backtest_router
+from .strategy_routes import router as strategy_router
 
-__all__ = ["stock_router", "config_router", "backtest_router"]
+__all__ = ["stock_router", "config_router", "backtest_router", "strategy_router"]

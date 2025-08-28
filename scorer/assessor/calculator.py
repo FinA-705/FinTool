@@ -1,6 +1,7 @@
 """
 风险指标计算器
 """
+
 import pandas as pd
 import numpy as np
 from typing import Optional
@@ -31,7 +32,9 @@ class MetricsCalculator:
                 stock_returns = aligned_data.iloc[:, 0]
                 market_returns_aligned = aligned_data.iloc[:, 1]
                 beta = self._calculate_beta(stock_returns, market_returns_aligned)
-                alpha = self._calculate_alpha(stock_returns, market_returns_aligned, beta)
+                alpha = self._calculate_alpha(
+                    stock_returns, market_returns_aligned, beta
+                )
 
         return RiskMetrics(
             volatility=volatility,

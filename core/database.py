@@ -227,7 +227,9 @@ class StockDatabase:
                     saved_count += 1
 
                 except Exception as e:
-                    logger.error(f"Error saving stock record {record.get('ts_code', 'unknown')}: {e}")
+                    logger.error(
+                        f"Error saving stock record {record.get('ts_code', 'unknown')}: {e}"
+                    )
                     continue
 
         return saved_count
@@ -263,7 +265,8 @@ class StockDatabase:
             # 检查缓存有效期
             cutoff_time = datetime.now() - timedelta(hours=cache_hours)
             where_conditions.append("updated_at > ?")
-            params.append(cutoff_time.isoformat())
+            # 使用与 SQLite CURRENT_TIMESTAMP 一致的格式，避免包含 'T' 导致字符串比较失败
+            params.append(cutoff_time.strftime("%Y-%m-%d %H:%M:%S"))
 
             if symbols:
                 placeholders = ",".join("?" * len(symbols))
@@ -290,7 +293,9 @@ class StockDatabase:
                 # 如果没有有效数据，则移除 updated_at 条件，尝试获取旧数据
                 where_conditions.pop(0)
                 params.pop(0)
-                where_clause = " AND ".join(where_conditions) if where_conditions else "1=1"
+                where_clause = (
+                    " AND ".join(where_conditions) if where_conditions else "1=1"
+                )
 
             query = f"""
                 SELECT * FROM stock_basic
@@ -347,9 +352,7 @@ class StockDatabase:
             cursor = conn.execute("SELECT ts_code FROM stock_basic")
             return [row[0] for row in cursor.fetchall()]
 
-    def save_financial_indicators(
-        self, stock_code: str, indicators: Dict[str, Any]
-    ):
+    def save_financial_indicators(self, stock_code: str, indicators: Dict[str, Any]):
         """
         保存股票财务指标
 
@@ -415,7 +418,8 @@ class StockDatabase:
                 FROM financial_indicators
                 WHERE stock_code IN ({placeholders}) AND updated_at > ?
             """
-            params = stock_codes + [cutoff_date.isoformat()]
+            # 与 SQLite 的 TIMESTAMP 字符串格式保持一致
+            params = stock_codes + [cutoff_date.strftime("%Y-%m-%d %H:%M:%S")]
 
             cursor = conn.execute(query, params)
             rows = cursor.fetchall()
@@ -455,52 +459,222 @@ class StockDatabase:
                 FROM financial_indicators
                 WHERE stock_code IN ({placeholders}) AND updated_at > ?
             """
-            params = all_codes + [cutoff_date.isoformat()]
+            # 与 SQLite 的 TIMESTAMP 字符串格式保持一致
+            params = all_codes + [cutoff_date.strftime("%Y-%m-%d %H:%M:%S")]
 
             cursor = conn.execute(query, params)
             existing_codes = {row[0] for row in cursor.fetchall()}
 
-            logger.info(
-                f"发现 {len(existing_codes)} 只股票已有近期财务指标，将跳过"
-            )
+            logger.info(f"发现 {len(existing_codes)} 只股票已有近期财务指标，将跳过")
 
             # 返回需要更新的股票列表
             return [code for code in all_codes if code not in existing_codes]
 
-    def get_stock_metrics(self, symbols: Optional[List[str]] = None, cache_hours: int = 1) -> Dict[str, Any]:
+    def get_stock_metrics(
+        self, symbols: Optional[List[str]] = None, cache_hours: int = 1
+    ) -> Dict[str, Any]:
         """
-        获取股票的财务指标
+        获取股票的财务指标（从 stock_metrics 表）。
+
+        说明：本方法返回的键为“纯代码”（不带 .SH/.SZ 后缀），
+        以便与调用方的处理逻辑一致（调用方通常以纯代码去重）。
 
         Args:
-            symbols: 股票代码列表，如果为None则获取所有股票
+            symbols: 纯代码列表（如 000001），如果为 None 则获取全部
             cache_hours: 缓存有效期（小时）
 
         Returns:
-            一个字典，键是股票代码，值是财务指标
+            一个字典，键是纯代码，值是财务指标字典
         """
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
             cutoff_time = datetime.now() - timedelta(hours=cache_hours)
-            
-            if symbols:
-                # 如果指定了股票代码，只获取这些股票的指标
-                placeholders = ",".join("?" * len(symbols))
-                query = f"SELECT stock_code, data_json FROM financial_indicators WHERE stock_code IN ({placeholders}) AND updated_at > ?"
-                params = symbols + [cutoff_time.isoformat()]
-            else:
-                # 获取所有股票的指标
-                query = "SELECT stock_code, data_json FROM financial_indicators WHERE updated_at > ?"
-                params = [cutoff_time.isoformat()]
-            
+
+            # 直接按时间过滤，避免在 SQL 中处理后缀/纯代码匹配的复杂性
+            query = (
+                "SELECT ts_code, pe, pb, roe, roa, debt_ratio, eps, market_cap, "
+                "current_price, change_pct, volume FROM stock_metrics WHERE updated_at > ?"
+            )
+            # 使用与 SQLite CURRENT_TIMESTAMP 一致的格式
+            params = [cutoff_time.strftime("%Y-%m-%d %H:%M:%S")]
+
             cursor = conn.execute(query, params)
             rows = cursor.fetchall()
-            metrics = {}
+
+            sym_set = set(s.upper().split(".")[0] for s in symbols) if symbols else None
+            metrics: Dict[str, Any] = {}
             for row in rows:
-                try:
-                    metrics[row["stock_code"]] = json.loads(row["data_json"])
-                except json.JSONDecodeError:
-                    pass
+                ts_code = row["ts_code"] or ""
+                pure = ts_code.split(".")[0].upper()
+                if sym_set is not None and pure not in sym_set:
+                    continue
+                metrics[pure] = {
+                    "ts_code": ts_code,
+                    "pe": row["pe"],
+                    "pb": row["pb"],
+                    "roe": row["roe"],
+                    "roa": row["roa"],
+                    "debt_ratio": row["debt_ratio"],
+                    "eps": row["eps"],
+                    "market_cap": row["market_cap"],
+                    "current_price": row["current_price"],
+                    "change_pct": row["change_pct"],
+                    "volume": row["volume"],
+                }
             return metrics
+
+    def save_stock_metric(self, metric: Dict[str, Any]) -> int:
+        """
+        保存单只股票的财务指标（逐股、立即入库）。
+
+        Args:
+            metric: 指标字典，包含 ts_code, pe, pb, roe, roa, debt_ratio, eps,
+                    market_cap, current_price, change_pct, volume
+
+        Returns:
+            成功保存的条数（0或1）
+        """
+
+        def _safe_float(x):
+            try:
+                if x in (None, ""):
+                    return None
+                return float(x)
+            except Exception:
+                return None
+
+        ts_code = metric.get("ts_code") or metric.get("code")
+        if not ts_code:
+            logger.error("save_stock_metric: 缺少 ts_code，跳过保存")
+            return 0
+
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute(
+                """
+                INSERT INTO stock_metrics
+                (ts_code, pe, pb, roe, roa, debt_ratio, eps, market_cap,
+                 current_price, change_pct, volume, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                ON CONFLICT(ts_code) DO UPDATE SET
+                    pe=excluded.pe,
+                    pb=excluded.pb,
+                    roe=excluded.roe,
+                    roa=excluded.roa,
+                    debt_ratio=excluded.debt_ratio,
+                    eps=excluded.eps,
+                    market_cap=excluded.market_cap,
+                    current_price=excluded.current_price,
+                    change_pct=excluded.change_pct,
+                    volume=excluded.volume,
+                    updated_at=CURRENT_TIMESTAMP
+                """,
+                (
+                    ts_code,
+                    _safe_float(metric.get("pe")),
+                    _safe_float(metric.get("pb")),
+                    _safe_float(metric.get("roe")),
+                    _safe_float(metric.get("roa")),
+                    _safe_float(metric.get("debt_ratio")),
+                    _safe_float(metric.get("eps")),
+                    _safe_float(metric.get("market_cap")),
+                    _safe_float(metric.get("current_price")),
+                    _safe_float(metric.get("change_pct")),
+                    _safe_float(metric.get("volume")),
+                ),
+            )
+            return 1
+
+    def save_stock_metrics(self, metrics: List[Dict[str, Any]]) -> int:
+        """
+        批量保存股票财务指标（向后兼容原有批量用法）。
+
+        Args:
+            metrics: 指标字典列表
+
+        Returns:
+            成功保存的条数
+        """
+        if not metrics:
+            return 0
+        saved = 0
+        with sqlite3.connect(self.db_path) as conn:
+            for metric in metrics:
+                try:
+
+                    def _safe_float(x):
+                        try:
+                            if x in (None, ""):
+                                return None
+                            return float(x)
+                        except Exception:
+                            return None
+
+                    ts_code = metric.get("ts_code") or metric.get("code")
+                    if not ts_code:
+                        continue
+
+                    conn.execute(
+                        """
+                        INSERT INTO stock_metrics
+                        (ts_code, pe, pb, roe, roa, debt_ratio, eps, market_cap,
+                         current_price, change_pct, volume, updated_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                        ON CONFLICT(ts_code) DO UPDATE SET
+                            pe=excluded.pe,
+                            pb=excluded.pb,
+                            roe=excluded.roe,
+                            roa=excluded.roa,
+                            debt_ratio=excluded.debt_ratio,
+                            eps=excluded.eps,
+                            market_cap=excluded.market_cap,
+                            current_price=excluded.current_price,
+                            change_pct=excluded.change_pct,
+                            volume=excluded.volume,
+                            updated_at=CURRENT_TIMESTAMP
+                        """,
+                        (
+                            ts_code,
+                            _safe_float(metric.get("pe")),
+                            _safe_float(metric.get("pb")),
+                            _safe_float(metric.get("roe")),
+                            _safe_float(metric.get("roa")),
+                            _safe_float(metric.get("debt_ratio")),
+                            _safe_float(metric.get("eps")),
+                            _safe_float(metric.get("market_cap")),
+                            _safe_float(metric.get("current_price")),
+                            _safe_float(metric.get("change_pct")),
+                            _safe_float(metric.get("volume")),
+                        ),
+                    )
+                    saved += 1
+                except Exception as e:
+                    logger.error(
+                        f"保存指标失败 {metric.get('ts_code', 'unknown')}: {e}"
+                    )
+                    continue
+        return saved
+
+    def clear_cache(self) -> None:
+        """
+        清空与股票缓存相关的数据库表。
+
+        这个方法用于在需要时完全清除本地持久化的缓存数据，
+        包括基础信息、日线数据、财务指标和指标详细表。
+        """
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM stock_basic")
+                cursor.execute("DELETE FROM stock_daily")
+                cursor.execute("DELETE FROM stock_metrics")
+                cursor.execute("DELETE FROM financial_indicators")
+                conn.commit()
+                # 释放空间
+                cursor.execute("VACUUM")
+            logger.info("本地数据库缓存已清除（所有相关表已删除数据并已 VACUUM）")
+        except Exception as e:
+            logger.error(f"清除数据库缓存时发生错误: {e}")
+            raise
 
 
 # 创建一个单例实例供其他模块使用

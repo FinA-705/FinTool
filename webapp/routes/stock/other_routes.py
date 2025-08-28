@@ -1,6 +1,7 @@
 """
 股票数据相关API路由 - 其他功能
 """
+
 from fastapi import APIRouter, Query, HTTPException
 from typing import List
 from webapp.models import SuccessResponse, ErrorResponse, MarketType
@@ -37,12 +38,16 @@ async def cache_metrics_manually(
             processed_codes = set(existing_metrics.keys())
 
             records_to_process = [
-                r for r in all_basic_data
-                if (r.get("ts_code") or r.get("code") or "").split(".")[0] not in processed_codes
+                r
+                for r in all_basic_data
+                if (r.get("ts_code") or r.get("code") or "").split(".")[0]
+                not in processed_codes
             ]
 
             if not records_to_process:
-                return SuccessResponse(message="所有股票的财务指标都已是最新", data={"processed_count": 0})
+                return SuccessResponse(
+                    message="所有股票的财务指标都已是最新", data={"processed_count": 0}
+                )
 
             records = records_to_process
             logger.info(f"从断点处继续，准备处理 {len(records)} 只股票的财务指标")
@@ -54,10 +59,13 @@ async def cache_metrics_manually(
             logger.info(f"强制更新模式，准备处理 {len(records)} 只股票的财务指标")
 
         if not records:
-            return SuccessResponse(message="没有找到需要处理的股票数据", data={"processed_count": 0})
+            return SuccessResponse(
+                message="没有找到需要处理的股票数据", data={"processed_count": 0}
+            )
 
         factory = AdapterFactory()
         from webapp.app import api_service as _svc
+
         full_cfg = _svc.config_manager.get_config("application") or {}
         tushare_cfg = (full_cfg.get("data_sources", {}) or {}).get("tushare", {}) or {}
         adapter = factory.get_or_create_adapter("tushare", tushare_cfg)
@@ -67,8 +75,14 @@ async def cache_metrics_manually(
         )
 
         # 重新查询以获取准确的已保存数量
-        final_codes = [r.get("code") or r.get("ts_code", "").split(".")[0] for r in records]
-        db_metrics = stock_db.get_stock_metrics(symbols=final_codes, cache_hours=1) if final_codes else {}
+        final_codes = [
+            r.get("code") or r.get("ts_code", "").split(".")[0] for r in records
+        ]
+        db_metrics = (
+            stock_db.get_stock_metrics(symbols=final_codes, cache_hours=1)
+            if final_codes
+            else {}
+        )
         actual_saved_count = len(db_metrics)
 
         return SuccessResponse(
@@ -98,7 +112,9 @@ async def search_stocks(
             }
             for i in range(min(limit, 10))
         ]
-        return SuccessResponse(message=f"搜索完成，找到 {len(results)} 个结果", data=results)
+        return SuccessResponse(
+            message=f"搜索完成，找到 {len(results)} 个结果", data=results
+        )
     except Exception as e:
         logger.error(f"股票搜索失败: {e}")
         raise HTTPException(status_code=500, detail=f"搜索失败: {str(e)}")

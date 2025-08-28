@@ -1,6 +1,7 @@
 """
 股票数据相关API路由 - 数据获取
 """
+
 from fastapi import APIRouter, Depends, Query, HTTPException
 from typing import Optional
 from webapp.models import StockDataResponse, MarketType
@@ -14,6 +15,7 @@ router = APIRouter()
 async def get_api_service():
     """获取API服务实例的依赖注入"""
     from webapp.app import api_service
+
     return api_service
 
 
@@ -47,7 +49,9 @@ async def get_stock_data(
                 market=market.value,
             )
 
-        logger.info(f"获取股票数据: market={market.value}, symbols={symbol_list}, limit={limit}")
+        logger.info(
+            f"获取股票数据: market={market.value}, symbols={symbol_list}, limit={limit}"
+        )
         raw_data = await get_all_stock_data_with_cache(market.value, symbol_list)
         data_source = "Tushare"
 
@@ -58,6 +62,7 @@ async def get_stock_data(
         ]
 
         from core.database import stock_db
+
         db_metrics = (
             stock_db.get_stock_metrics(symbols=codes, cache_hours=24) if codes else {}
         )

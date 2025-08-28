@@ -5,10 +5,26 @@ JSON处理工具
 支持多种数据格式的序列化和反序列化
 """
 
-from .json import *
-from .json.helper import JSONHelper, _global_helper
-from .json.encoder import CustomJSONEncoder
 from .json.config import ConfigManager
+from .json.convenience import (
+    json_from_string,
+    json_load,
+    json_save,
+    json_to_string,
+    json_merge,
+    json_validate,
+    json_format,
+)
+from .json.dataframe import (
+    dataframe_to_json,
+    json_to_dataframe,
+)
+from .json.encoder import CustomJSONEncoder
+from .json.helper import JSONHelper, _global_helper
+from .json.json_lines import (
+    dict_to_json_lines,
+    json_lines_to_dict,
+)
 
 # For backward compatibility, we can keep the old names if needed
 JSONEncoder = CustomJSONEncoder

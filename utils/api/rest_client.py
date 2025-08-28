@@ -1,6 +1,7 @@
 """
 REST API客户端基类
 """
+
 from typing import Any, Dict, Union
 from .helper import APIHelper
 from .models import APIResponse

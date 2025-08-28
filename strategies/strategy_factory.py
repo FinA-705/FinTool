@@ -18,9 +18,7 @@ class StrategyFactory:
 
     # 注册的策略类
     _strategies: Dict[str, Type[BaseStrategy]] = {
-        "schloss": SchlossStrategy,
-        "walter_schloss": SchlossStrategy,  # 别名
-        "value": SchlossStrategy,  # 别名
+    "schloss": SchlossStrategy,
     }
 
     @classmethod
@@ -213,8 +211,6 @@ class DefaultStrategiesPlugin(StrategyPlugin):
         """获取默认策略"""
         return {
             "schloss": SchlossStrategy,
-            "walter_schloss": SchlossStrategy,
-            "value_investing": SchlossStrategy,
         }
 
 

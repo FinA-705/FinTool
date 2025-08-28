@@ -8,6 +8,7 @@ Tushare数据源适配器
 import asyncio
 import pandas as pd
 import tushare as ts
+import tushare.async_tushare as ats
 from typing import Dict, List, Optional, Any
 from datetime import datetime, date
 import time
@@ -154,13 +155,13 @@ class TushareAdapter(BaseAdapter):
             if self._client is not None:
                 return
             ts.set_token(self.token)
-            self._client = ts.pro_api()
+            self._client = ats.async_pro_api()
             self.logger.info(f"Tushare客户端初始化成功, 服务器: {self.baseurl}")
         except Exception as e:
             self.logger.error(f"Tushare客户端初始化失败: {str(e)}")
             raise
 
-    def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> Dict[str, Any]:
         """健康检查：验证 token 有效性 & 基础接口可用性"""
         result: Dict[str, Any] = {
             "adapter": "tushare",
@@ -173,7 +174,7 @@ class TushareAdapter(BaseAdapter):
         try:
             self._init_client()
             # 尝试获取一条基础信息（Tushare 不支持 limit=1，需要取head）
-            data = self._client.stock_basic(exchange="", list_status="L")
+            data = await self._client.stock_basic(exchange="", list_status="L")
             if not data.empty:
                 result["token_valid"] = True
                 result["stock_basic_access"] = True
@@ -258,13 +259,13 @@ class TushareAdapter(BaseAdapter):
     async def _fetch_basic_info(self, request: DataRequest) -> pd.DataFrame:
         """获取股票基础信息"""
 
-        def _get_basic_info():
+        async def _get_basic_info():
             if request.symbols:
                 # 获取指定股票的基础信息
                 all_data = []
                 for symbol in request.symbols:
                     try:
-                        data = self._client.stock_basic(ts_code=symbol)
+                        data = await self._client.stock_basic(ts_code=symbol)
                         if not data.empty:
                             all_data.append(data)
                     except Exception as e:
@@ -276,9 +277,33 @@ class TushareAdapter(BaseAdapter):
                     else pd.DataFrame()
                 )
             else:
-                # 获取所有A股基础信息，不应用limit限制
-                self.logger.info("开始获取所有A股基础信息...")
-                data = self._client.stock_basic(exchange="", list_status="L")
+                # 检查是否启用特选股模式
+                if env_config.selective_stocks_mode:
+                    self.logger.info("启用特选股模式，按指数成分股过滤基础信息...")
+                    # 先取全量基础信息，再按成分股过滤，避免批量 ts_code 失败
+                    data = await self._client.stock_basic(exchange="", list_status="L")
+                    total = len(data)
+                    try:
+                        index_syms = await self.get_index_stocks()
+                        if index_syms:
+                            data = data[data["ts_code"].isin(index_syms)]
+                            self.logger.info(
+                                f"基础信息过滤：从 {total} 到 {len(data)} 条（特选股）"
+                            )
+                        else:
+                            self.logger.warning("指数成分股列表为空，基础信息不做过滤")
+                    except Exception as e:
+                        self.logger.warning(f"特选股模式基础信息过滤失败: {str(e)}")
+
+                    # 只有在明确指定limit时才应用限制
+                    if request.limit and request.limit > 0:
+                        data = data.head(request.limit)
+                        self.logger.info(f"应用limit限制，返回 {len(data)} 条数据")
+                    return data
+
+                # 普通模式：获取所有A股基础信息
+                self.logger.info("获取所有A股基础信息...")
+                data = await self._client.stock_basic(exchange="", list_status="L")
                 self.logger.info(f"获取到 {len(data)} 条股票基础信息")
 
                 # 只有在明确指定limit时才应用限制
@@ -288,34 +313,60 @@ class TushareAdapter(BaseAdapter):
 
                 return data
 
-        # 在线程池中执行同步操作
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, _get_basic_info)
+        return await _get_basic_info()
 
     async def _fetch_financial_data(self, request: DataRequest) -> pd.DataFrame:
         """获取财务数据"""
 
-        def _get_financial_data():
+        async def _get_financial_data():
             all_data = []
 
             if not request.symbols:
-                # 如果没有指定股票，获取最新的财务数据样本
-                basic_stocks = self._client.stock_basic(exchange="", list_status="L")
-                symbols = basic_stocks["ts_code"].head(request.limit or 100).tolist()
+                # 如果没有指定股票
+                if env_config.selective_stocks_mode:
+                    # 特选股模式：仅选沪深300/中证500
+                    self.logger.info(
+                        "启用特选股模式（财务数据）：仅处理沪深300和中证500成分股"
+                    )
+                    index_syms = await self.get_index_stocks()
+                    if index_syms:
+                        if request.limit and request.limit > 0:
+                            symbols = index_syms[: request.limit]
+                        else:
+                            symbols = index_syms
+                    else:
+                        self.logger.warning("指数成分股列表为空，回退到全市场采样")
+                        basic_stocks = await self._client.stock_basic(
+                            exchange="", list_status="L"
+                        )
+                        symbols = (
+                            basic_stocks["ts_code"].head(request.limit or 100).tolist()
+                        )
+                else:
+                    # 普通模式：全市场采样
+                    basic_stocks = await self._client.stock_basic(
+                        exchange="", list_status="L"
+                    )
+                    symbols = (
+                        basic_stocks["ts_code"].head(request.limit or 100).tolist()
+                    )
             else:
                 symbols = request.symbols
 
             for symbol in symbols:
                 try:
+                    # 频控
+                    await self._wait_for_rate_limit()
                     # 获取最新财务指标
-                    indicator_data = self._client.fina_indicator(
+                    indicator_data = await self._client.fina_indicator(
                         ts_code=symbol,
                         start_date=request.start_date,
                         end_date=request.end_date,
                     )
 
                     # 获取每日指标（市盈率、市净率等）
-                    daily_basic = self._client.daily_basic(
+                    await self._wait_for_rate_limit()
+                    daily_basic = await self._client.daily_basic(
                         ts_code=symbol,
                         start_date=request.start_date,
                         end_date=request.end_date,
@@ -342,26 +393,39 @@ class TushareAdapter(BaseAdapter):
 
             return pd.DataFrame(all_data) if all_data else pd.DataFrame()
 
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, _get_financial_data)
+        return await _get_financial_data()
 
     async def _fetch_market_data(self, request: DataRequest) -> pd.DataFrame:
         """获取市场行情数据"""
 
-        def _get_market_data():
+        async def _get_market_data():
             all_data = []
 
             if not request.symbols:
                 # 获取今日所有股票行情
                 trade_date = datetime.now().strftime("%Y%m%d")
-                data = self._client.daily(trade_date=trade_date)
+                data = await self._client.daily(trade_date=trade_date)
+                # 特选股模式：对全量结果进行成分股过滤
+                if env_config.selective_stocks_mode:
+                    try:
+                        index_syms = await self.get_index_stocks()
+                        if index_syms:
+                            before = len(data)
+                            data = data[data["ts_code"].isin(index_syms)]
+                            self.logger.info(
+                                f"启用特选股模式（行情）：从 {before} 过滤到 {len(data)} 条"
+                            )
+                        else:
+                            self.logger.warning("指数成分股列表为空，行情不做过滤")
+                    except Exception as e:
+                        self.logger.warning(f"特选股模式行情过滤失败: {str(e)}")
                 if request.limit:
                     data = data.head(request.limit)
                 return data
 
             for symbol in request.symbols:
                 try:
-                    data = self._client.daily(
+                    data = await self._client.daily(
                         ts_code=symbol,
                         start_date=request.start_date,
                         end_date=request.end_date,
@@ -375,13 +439,12 @@ class TushareAdapter(BaseAdapter):
                 pd.concat(all_data, ignore_index=True) if all_data else pd.DataFrame()
             )
 
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, _get_market_data)
+        return await _get_market_data()
 
     async def _fetch_technical_data(self, request: DataRequest) -> pd.DataFrame:
         """获取技术指标数据"""
 
-        def _get_technical_data():
+        async def _get_technical_data():
             all_data = []
 
             if not request.symbols:
@@ -390,7 +453,7 @@ class TushareAdapter(BaseAdapter):
             for symbol in request.symbols:
                 try:
                     # 获取每日基本面数据（包含技术指标）
-                    data = self._client.daily_basic(
+                    data = await self._client.daily_basic(
                         ts_code=symbol,
                         start_date=request.start_date,
                         end_date=request.end_date,
@@ -404,10 +467,9 @@ class TushareAdapter(BaseAdapter):
                 pd.concat(all_data, ignore_index=True) if all_data else pd.DataFrame()
             )
 
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, _get_technical_data)
+        return await _get_technical_data()
 
-    def get_stock_list(self, exchange: Optional[str] = None) -> pd.DataFrame:
+    async def get_stock_list(self, exchange: Optional[str] = None) -> pd.DataFrame:
         """
         获取股票列表
 
@@ -418,13 +480,15 @@ class TushareAdapter(BaseAdapter):
             股票列表数据
         """
         try:
-            data = self._client.stock_basic(exchange=exchange or "", list_status="L")
+            data = await self._client.stock_basic(
+                exchange=exchange or "", list_status="L"
+            )
             return data
         except Exception as e:
             self.logger.error(f"获取股票列表失败: {str(e)}")
             return pd.DataFrame()
 
-    def get_trade_calendar(self, start_date: str, end_date: str) -> pd.DataFrame:
+    async def get_trade_calendar(self, start_date: str, end_date: str) -> pd.DataFrame:
         """
         获取交易日历
 
@@ -436,13 +500,63 @@ class TushareAdapter(BaseAdapter):
             交易日历数据
         """
         try:
-            data = self._client.trade_cal(
+            data = await self._client.trade_cal(
                 exchange="SSE", start_date=start_date, end_date=end_date
             )
             return data
         except Exception as e:
             self.logger.error(f"获取交易日历失败: {str(e)}")
             return pd.DataFrame()
+
+    async def get_index_stocks(self) -> List[str]:
+        """
+        获取沪深300和中证500成分股列表
+
+        Returns:
+            股票代码列表
+        """
+        try:
+            all_stocks = []
+
+            # 获取沪深300成分股
+            try:
+                hs300_data = await self._client.index_weight(index_code="399300.SZ")
+                if not hs300_data.empty:
+                    hs300_stocks = hs300_data["con_code"].tolist()
+                    all_stocks.extend(hs300_stocks)
+                    self.logger.info(f"获取到沪深300成分股: {len(hs300_stocks)} 只")
+            except Exception as e:
+                self.logger.warning(f"获取沪深300成分股失败，尝试备用方法: {str(e)}")
+                # 备用方法：使用000300.SH
+                try:
+                    hs300_data = await self._client.index_weight(index_code="000300.SH")
+                    if not hs300_data.empty:
+                        hs300_stocks = hs300_data["con_code"].tolist()
+                        all_stocks.extend(hs300_stocks)
+                        self.logger.info(
+                            f"使用备用方法获取到沪深300成分股: {len(hs300_stocks)} 只"
+                        )
+                except Exception as e2:
+                    self.logger.warning(f"备用方法也失败: {str(e2)}")
+
+            # 获取中证500成分股
+            try:
+                zz500_data = await self._client.index_weight(index_code="000905.SH")
+                if not zz500_data.empty:
+                    zz500_stocks = zz500_data["con_code"].tolist()
+                    all_stocks.extend(zz500_stocks)
+                    self.logger.info(f"获取到中证500成分股: {len(zz500_stocks)} 只")
+            except Exception as e:
+                self.logger.warning(f"获取中证500成分股失败: {str(e)}")
+
+            # 去重并返回
+            unique_stocks = list(set(all_stocks))
+            self.logger.info(f"特选股模式总共获取股票: {len(unique_stocks)} 只")
+            return unique_stocks
+
+        except Exception as e:
+            self.logger.error(f"获取指数成分股失败: {str(e)}")
+            return []
 
     async def test_connection(self) -> tuple[bool, str]:
         """测试Tushare连接"""

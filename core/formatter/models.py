@@ -1,6 +1,7 @@
 """
 输出格式化器的数据模型
 """
+
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional

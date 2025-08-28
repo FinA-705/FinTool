@@ -1,6 +1,7 @@
 """
 基于JSON的配置管理
 """
+
 from typing import Any, Dict, Union
 from pathlib import Path
 from .helper import JSONHelper

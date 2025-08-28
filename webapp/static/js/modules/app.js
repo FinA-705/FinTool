@@ -33,10 +33,16 @@ const App = {
       }
     });
 
-    // 表单提交事件
-    $("#strategy-form").submit(StrategiesManager.handleSubmit);
-    $("#execute-strategy-form").submit(StrategiesManager.handleExecute);
-    $("#backtest-form").submit(BacktestManager.handleSubmit);
+    // 表单提交事件（仅绑定当前存在的表单）
+    if (document.getElementById('strategy-form')) {
+      $("#strategy-form").submit(StrategiesManager.handleSubmit);
+    }
+    if (document.getElementById('execute-strategy-form')) {
+      $("#execute-strategy-form").submit(StrategiesManager.handleExecute);
+    }
+    if (document.getElementById('backtest-form')) {
+      $("#backtest-form").submit(BacktestManager.handleSubmit);
+    }
 
     // 将函数暴露到全局作用域，供 HTML onclick 调用
     App.exposeGlobalFunctions();

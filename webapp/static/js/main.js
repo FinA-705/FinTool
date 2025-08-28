@@ -29,7 +29,7 @@
   function loadModule(modulePath) {
     return new Promise((resolve, reject) => {
       const script = document.createElement("script");
-      script.src = `/static/js/modules/${modulePath}?v=${Date.now()}`; // 添加时间戳避免缓存
+      script.src = `/static/js/modules/${modulePath}`;
       script.onload = resolve;
       script.onerror = reject;
       document.head.appendChild(script);

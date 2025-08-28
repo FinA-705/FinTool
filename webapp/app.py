@@ -14,12 +14,12 @@ project_root = current_dir.parent
 sys.path.insert(0, str(project_root))
 
 from webapp.routes import (
-    main_routes,
-    stock_routes,
-    strategy_routes,
-    backtest_routes,
-    config_routes,
+    stock_router,
+    strategy_router,
+    backtest_router,
+    config_router,
 )
+from webapp.routes.main_routes import router as main_router
 from core.api_service import APIService
 
 # 全局API服务实例
@@ -49,11 +49,11 @@ def create_app() -> FastAPI:
     )
 
     # 包含API路由
-    app.include_router(main_routes.router)
-    app.include_router(stock_routes.router, prefix="/api/v1", tags=["Stocks"])
-    app.include_router(strategy_routes.router, prefix="/api/v1", tags=["Strategies"])
-    app.include_router(backtest_routes.router, prefix="/api/v1", tags=["Backtest"])
-    app.include_router(config_routes.router, prefix="/api/v1", tags=["Config"])
+    app.include_router(main_router)
+    app.include_router(stock_router, prefix="/api/v1", tags=["Stocks"])
+    app.include_router(strategy_router, prefix="/api/v1", tags=["Strategies"])
+    app.include_router(backtest_router, prefix="/api/v1", tags=["Backtest"])
+    app.include_router(config_router, prefix="/api/v1", tags=["Config"])
 
     @app.on_event("startup")
     async def startup_event():

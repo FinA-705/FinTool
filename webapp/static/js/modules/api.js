@@ -40,25 +40,31 @@ const ApiService = {
     return ApiService.request(fullUrl);
   },
 
-  // POST 请求
-  post: (url, data = {}) => {
-    return ApiService.request(url, {
+  // POST 请求 (支持额外 query params)
+  post: (url, data = {}, params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const fullUrl = queryString ? `${url}?${queryString}` : url;
+    return ApiService.request(fullUrl, {
       method: "POST",
       body: JSON.stringify(data),
     });
   },
 
-  // PUT 请求
-  put: (url, data = {}) => {
-    return ApiService.request(url, {
+  // PUT 请求 (支持额外 query params)
+  put: (url, data = {}, params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const fullUrl = queryString ? `${url}?${queryString}` : url;
+    return ApiService.request(fullUrl, {
       method: "PUT",
       body: JSON.stringify(data),
     });
   },
 
-  // DELETE 请求
-  delete: (url) => {
-    return ApiService.request(url, {
+  // DELETE 请求 (支持额外 query params)
+  delete: (url, params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const fullUrl = queryString ? `${url}?${queryString}` : url;
+    return ApiService.request(fullUrl, {
       method: "DELETE",
     });
   },
@@ -79,6 +85,16 @@ const StockAPI = {
   // 手动缓存财务指标
   cacheMetrics: (params = {}) => {
     return ApiService.post("/stocks/cache-metrics", {}, params);
+  },
+
+  // 获取异常代码列表（需要后端已暴露 /stocks/metrics/bad-codes）
+  getBadCodes: () => {
+    return ApiService.get("/stocks/metrics/bad-codes");
+  },
+
+  // 触发重抓财务指标（支持 { codes: [] } 或使用 params 传 all=true, force=true）
+  refetchMetrics: (payload = {}, params = {}) => {
+    return ApiService.post("/stocks/metrics/refetch", payload, params);
   },
 
   // 执行选股策略
@@ -123,6 +139,21 @@ const SystemAPI = {
   getHealth: () => {
     return ApiService.get("/health");
   },
+
+  // 获取系统详细信息（兼容 legacy 调用名 getInfo）
+  getInfo: () => {
+    return ApiService.get("/info");
+  },
+
+  // 获取缓存信息
+  getCacheInfo: () => {
+    return ApiService.get("/cache/info");
+  },
+
+  // 清除缓存（legacy 使用）
+  clearCache: () => {
+    return ApiService.post("/cache/clear", {});
+  },
 };
 
 // 策略相关API
@@ -155,7 +186,36 @@ const StrategyAPI = {
   // 执行策略
   execute: (strategyName, topN = 20, params = {}) => {
     const queryParams = { top_n: topN, ...params };
-    return ApiService.post(`/strategies/${strategyName}/execute`, {}, queryParams);
+    return ApiService.post(
+      `/strategies/${strategyName}/execute`,
+      {},
+      queryParams
+    );
+  },
+
+  // 启用/禁用策略
+  enable: (strategyName, enabled = true) => {
+    return ApiService.post(`/strategies/${strategyName}/enable`, {}, { enabled });
+  },
+
+  // 克隆策略
+  clone: (strategyName, newName) => {
+    return ApiService.post(`/strategies/${strategyName}/clone`, {}, { new_name: newName });
+  },
+
+  // 导出策略配置
+  export: (strategyName) => {
+    return ApiService.post(`/strategies/${strategyName}/export`, {});
+  },
+
+  // 导入策略配置
+  import: (strategyName, config) => {
+    return ApiService.post(`/strategies/${strategyName}/import`, { config });
+  },
+
+  // 获取评分区间
+  getScoringRanges: (metric) => {
+    return ApiService.get(`/strategies/scoring/ranges/${metric}`);
   },
 };
 
