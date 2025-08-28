@@ -1,244 +1,159 @@
-# FinancialAgent - 智能选股系统
+# FinancialAgent / 智能选股系统（使用指南）
 
-一个基于施洛斯价值投资策略的跨市场智能选股系统，支持A股、美股、港股的多数据源分析、AI评分、回测和自动调优。
+一个基于施洛斯价值投资策略的跨市场智能选股系统，集数据抓取、指标清洗、策略筛选、评分、回测与Web管理于一体。
 
-## 项目特性
+## 1. 环境与依赖
 
-### 🌐 跨市场支持
-- **A股市场**：沪深主板、创业板、科创板
-- **美股市场**：纳斯达克、纽交所
-- **港股市场**：主板、创业板
+- Python: 3.13+（见 `pyproject.toml`）
+- 系统依赖：可用的 SQLite（内置）、网络可访问 Tushare/Yahoo
 
-### 📊 多数据源集成
-- **Tushare**：A股专业数据
-- **Yahoo Finance**：全球市场数据
-- **AKShare**：多市场金融数据
-- **自定义适配器**：支持扩展更多数据源
-
-### 🎯 施洛斯价值投资策略
-- 低P/E、P/B比率筛选
-- 债务比率控制
-- 盈利稳定性分析
-- 分红历史评估
-- 支持自定义策略表达式
-
-### 🤖 智能评分系统
-- **基础评分**：财务指标量化评分
-- **AI评分**：GPT-4等大模型深度分析
-- **风险评估**：波动率、最大回撤、VaR计算
-- **综合评分**：多维度权重评分
-
-### 📈 回测与优化
-- 历史数据回测引擎
-- 多策略对比分析
-- 绩效指标计算
-- 参数自动调优（遗传算法、贝叶斯优化）
-
-### 🔧 系统特性
-- 模块化设计，易于扩展
-- 异步数据获取，高性能
-- 智能缓存机制
-- 配置热加载
-- RESTful API接口
-- Web界面管理
-
-## 项目结构
-
-```
-FinancialAgent/
-├── adapters/           # 数据源适配器
-│   ├── base.py        # 适配器基类
-│   ├── tushare_adapter.py
-│   ├── yfinance_adapter.py
-│   └── akshare_adapter.py
-├── cleaner/           # 数据清洗模块
-│   └── cleaner.py
-├── strategies/        # 投资策略模块
-│   ├── schloss_strategy.py
-│   └── formula_parser.py
-├── scorer/           # 评分模块
-│   ├── basic_scorer.py
-│   ├── ai_scorer.py
-│   └── risk_assessor.py
-├── core/            # 核心模块
-│   ├── config_manager.py
-│   ├── cache_manager.py
-│   ├── output_formatter.py
-│   └── scheduler.py
-├── backtest/        # 回测模块
-│   ├── backtester.py
-│   └── performance_metrics.py
-├── utils/           # 工具库
-│   ├── logger.py
-│   ├── timer.py
-│   ├── validators.py
-│   └── ...
-├── webapp/          # Web应用
-│   ├── app.py
-│   ├── routes/
-│   ├── static/
-│   └── templates/
-├── tests/           # 测试用例
-├── config/          # 配置文件
-├── data/            # 数据存储
-├── logs/            # 日志文件
-└── cli.py           # 命令行入口
-```
-
-## 快速开始
-
-### 环境安装
+安装步骤（推荐虚拟环境）：
 
 ```bash
-# 克隆项目
-git clone <repository-url>
-cd FinancialAgent
+git clone <your-repo-url>
+cd FinTool/project
 
-# 创建虚拟环境
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# or
-venv\Scripts\activate     # Windows
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 
-# 安装依赖
-pip install -r requirements.txt
+pip install -U pip
+pip install .             # 使用 pyproject 安装依赖
+# 或者：pip install -r requirements.txt.bak
 ```
 
-### 配置设置
+使用 uv 管理环境（可选，更快更简洁）：
 
-1. 复制配置模板：
+```bash
+# 安装 uv（Linux/macOS）
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# 创建虚拟环境并激活
+uv venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+
+# 安装依赖（基于 pyproject.toml）
+uv pip install -e .
+# 或：uv pip install -r requirements.txt.bak
+```
+
+## 2. 必要配置
+
+1) 复制示例配置：
+
 ```bash
 cp config/config.example.yaml config/config.yaml
 ```
 
-2. 编辑配置文件，设置API密钥：
+2) 在 `config/config.yaml` 填写数据源信息（至少 Tushare）：
+
 ```yaml
 data_sources:
   tushare:
-    token: "your_tushare_token"
-  # ... 其他配置
+    token: "你的_tushare_token"
 ```
 
-### 运行示例
+3) 策略参数位于 `config/strategies.yaml`，默认已提供“schloss”策略。注意单位：
+
+- 市值（market_cap）配置单位为“万元”；Web 前端展示为“亿元”。
+- ROE 与资产负债率在配置里使用百分数（如 8 表示 8%）。
+
+## 3. 运行方式
+
+### A) 启动 Web 界面
 
 ```bash
-# 命令行模式
-python cli.py --market A股 --strategy schloss --output json
-
-# Web服务模式
-python webapp/app.py
-
-# 回测模式
-python cli.py --backtest --start-date 2020-01-01 --end-date 2023-12-31
+python -m uvicorn webapp.app:app --host 127.0.0.1 --port 8002
 ```
 
-## API文档
+VS Code 用户可直接用任务：Run Web Server (uvicorn) on 8002。
 
-### 命令行接口
+启动后浏览器访问：
 
-```bash
-# 基本选股
-python cli.py --market A股 --strategy schloss
+- http://127.0.0.1:8002/  首页与列表
 
-# 自定义策略
-python cli.py --formula "PE < 15 AND PB < 2 AND ROE > 0.1"
+首次运行提示：
 
-# 输出格式
-python cli.py --output json --pretty --save results.json
+- 打开“股票列表”页面，点击右上角“刷新股票列表”以触发全量数据获取；
+- 切回命令行观察抓取与入库日志，该过程可能需要数分钟（视网络与数据量）；
+- 完成后页面会逐步显示数据，如网络不稳定可稍后重试刷新。
 
-# 回测分析
-python cli.py --backtest --period 1y --benchmark 000300.SH
-```
+常用健康检查：
 
-### Web API
+- GET /api/stocks/health
+- GET /api/stocks/market/summary
+- GET /api/stocks/metrics/bad-codes  查看疑似异常股票列表
 
-```http
-# 获取选股结果
-GET /api/stocks/screen?market=A股&strategy=schloss
+### B) 命令行（可选）
 
-# 获取股票评分
-GET /api/stocks/{symbol}/score
+仓库包含 `cli.py`，可用于批处理、回测等（如需请根据项目实际参数扩展）。
 
-# 配置管理
-GET /api/config
-POST /api/config/update
-```
+## 4. 常用 API（片段）
 
-## 配置说明
+基础数据与检索：
 
-### 策略配置
+- GET `/api/stocks/data` 获取股票基础数据（支持缓存）
+- GET `/api/stocks/search?q=关键词` 代码/名称检索
+- GET `/api/stocks/info/{stock_code}` 个股信息
 
-```yaml
-strategies:
-  schloss:
-    pe_max: 15.0        # 最大市盈率
-    pb_max: 2.0         # 最大市净率
-    debt_ratio_max: 0.4 # 最大负债率
-    roe_min: 0.1        # 最小净资产收益率
-    dividend_years: 3   # 分红年数要求
-```
+市场与策略：
 
-### 评分权重
+- GET `/api/stocks/market/summary` 市场概览
+- POST `/api/stocks/screen` 选股（按策略名及参数筛选）
 
-```yaml
-scoring:
-  weights:
-    basic_score: 0.4    # 基础评分权重
-    ai_score: 0.4       # AI评分权重
-    risk_score: 0.2     # 风险评分权重
-```
+财务指标运维：
 
-## 开发指南
+- GET `/api/stocks/metrics/bad-codes` 当前疑似异常股票列表
+- POST `/api/stocks/metrics/refetch` 重抓指标（传入 `codes` 或 `?all=true`）
 
-### 添加新数据源
+返回结构均为统一封装的 `SuccessResponse`，详见 `webapp/models.py`。
 
-1. 继承 `adapters.base.BaseAdapter`
-2. 实现必要的接口方法
-3. 配置字段映射
-4. 注册到配置文件
+## 5. 使用要点与单位说明
 
-### 自定义策略
+- 市值单位：
+  - 数据库与后端策略使用“万元”存储；
+  - Web 列表展示自动格式化为“亿元/万亿元”。
+- ROE/负债率单位：配置与展示以“百分数”表达（如 8 表示 8%）。
+- 选择性抓取模式与缓存：系统会优先用数据库缓存，失效时异步抓取并入库。
 
-1. 继承 `strategies.base.BaseStrategy`
-2. 实现选股逻辑
-3. 或使用公式解析器创建表达式策略
+## 6. 异常监控与重试
 
-### 扩展评分模块
+- 在财务指标抓取阶段，如 `daily_basic`/`fina_indicator`/`daily` 调用失败（例如“Server disconnected”），对应股票会被“立即”加入缓存异常列表，前端和接口可立刻看到。
+- 接口：
+  - GET `/api/stocks/metrics/bad-codes` 查看异常列表
+  - POST `/api/stocks/metrics/refetch` 触发重抓
+    - 请求体：`{"codes": ["000001.SZ", "600000.SH"]}` 或使用 `?all=true`
+- 若重抓成功且指标不再异常，系统会自动把该代码从异常列表移除。
 
-1. 继承相应的评分基类
-2. 实现评分算法
-3. 注册到评分管道
+## 7. 配置文件速览
 
-## 测试
+- `config/config.yaml`：应用与数据源配置（如 Tushare token）。
+- `config/strategies.yaml`：策略阈值（如市值下限、PE/PB范围、ROE/负债率阈值）。
+- 提示：放宽非关键约束（行业、交易天数等）能提升候选数量；关键指标建议保留。
 
-```bash
-# 运行所有测试
-pytest
+## 8. 日志与数据
 
-# 运行特定模块测试
-pytest tests/test_adapters.py
+- 日志目录：`logs/`（含 rolling 文件与压缩包）
+- 缓存/数据库：`core/database.py` 使用 SQLite；指标与基础数据会落盘，便于离线浏览与增量更新。
 
-# 生成覆盖率报告
-pytest --cov=. --cov-report=html
-```
+## 9. 常见问题（FAQ）
 
-## 性能优化
+1) 启动后看不到数据？
+   - 确认 `config/config.yaml` 内 Tushare token 有效；
+   - 首次启动需要等待数据抓取与入库；
+   - 查看 `GET /api/stocks/health` 与服务端日志。
 
-- 使用异步请求提高数据获取效率
-- 智能缓存减少重复计算
-- 数据库索引优化查询性能
-- 分布式计算支持大规模回测
+2) 市值单位为什么与页面不同？
+   - 后端存“万元”，前端显示“亿元/万亿元”，属预期。
 
-## 许可证
+3) 选股结果为 0？
+   - 检查 `config/strategies.yaml` 的阈值与单位是否过严；
+   - 适当放宽非关键约束，仅保留 PE/PB/ROE/负债率/市值等核心条件。
 
-MIT License
+## 10. 参与开发
 
-## 贡献
+- 路由：`webapp/routes`（含市场、数据、策略与维护接口）
+- 服务：`webapp/services/stock_data_service.py`（抓取缓存、异常标记）
+- 策略：`strategies/schloss_strategy.py` 与 `strategies/config_manager.py`
+- 前端：`webapp/templates/` 与 `webapp/static/js/modules/`
 
-欢迎提交Issue和Pull Request来改进项目。
-
-## 联系方式
-
-- 项目主页：[项目链接]
-- 问题反馈：[Issues链接]
-- 技术交流：[讨论区链接]
+欢迎提交 Issue / PR。若需要“图形化策略配置”，可在 Web 端添加配置弹窗与对应 API（见 issue 模板说明或联系我们）。
